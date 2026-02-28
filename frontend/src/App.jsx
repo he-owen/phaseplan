@@ -1,36 +1,22 @@
-import { useState, useEffect } from "react";
-import { getStatus } from "./api";
+import { Routes, Route } from 'react-router-dom';
+import CssBaseline from '@mui/material/CssBaseline';
+import Dashboard from './dashboard/Dashboard';
+import CrudDashboard from './crud-dashboard/CrudDashboard';
+import SignIn from './sign-in/SignIn';
+import SignInSide from './sign-in-side/SignInSide';
+import SignUp from './sign-up/SignUp';
 
 export default function App() {
-  const [status, setStatus] = useState(null);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    getStatus()
-      .then(setStatus)
-      .catch((e) => setError(e.message));
-  }, []);
-
   return (
-    <div style={{ padding: "2rem", fontFamily: "system-ui" }}>
-      <header style={{ marginBottom: "1.5rem" }}>
-        <h1>Pipeline check</h1>
-        <p style={{ color: "#666" }}>Add your pages and features below.</p>
-      </header>
-
-      <section>
-        {error && (
-          <p style={{ color: "crimson" }}>
-            Backend says: Error — {error}
-          </p>
-        )}
-        {status && (
-          <p>
-            Backend says: status = {status.status}, database = {status.database}.
-          </p>
-        )}
-        {!status && !error && <p>Loading…</p>}
-      </section>
-    </div>
+    <>
+      <CssBaseline />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/crud/*" element={<CrudDashboard />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-in-side" element={<SignInSide />} />
+        <Route path="/sign-up" element={<SignUp />} />
+      </Routes>
+    </>
   );
 }
