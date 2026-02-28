@@ -11,10 +11,15 @@ import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import { usePage } from '../context/PageContext';
 
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
+import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
+
 const mainListItems = [
   { text: 'Home', icon: <HomeRoundedIcon /> },
   { text: 'Analytics', icon: <AnalyticsRoundedIcon /> },
   { text: 'Devices', icon: <DevicesRoundedIcon /> },
+  { text: 'Billing', icon: <ReceiptLongRoundedIcon /> },
+  { text: 'Optimization', icon: <TrendingDownRoundedIcon /> },
 ];
 
 const secondaryListItems = [

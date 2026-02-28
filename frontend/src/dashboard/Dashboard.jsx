@@ -7,6 +7,8 @@ import Header from './components/Header';
 import MainGrid from './components/MainGrid';
 import AnalyticsPage from './components/AnalyticsPage';
 import DevicesPage from './components/DevicesPage';
+import BillingPage from './components/BillingPage';
+import OptimizationPage from './components/OptimizationPage';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
 import { PageProvider, usePage } from './context/PageContext';
@@ -32,6 +34,10 @@ function PageContent() {
       return <AnalyticsPage />;
     case 'Devices':
       return <DevicesPage />;
+    case 'Billing':
+      return <BillingPage />;
+    case 'Optimization':
+      return <OptimizationPage />;
     default:
       return <MainGrid />;
   }
