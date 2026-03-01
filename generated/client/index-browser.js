@@ -168,6 +168,14 @@ exports.Prisma.UtilityProviderScalarFieldEnum = {
   fetchedAt: 'fetchedAt'
 };
 
+exports.Prisma.UserPreferencesScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  weeklySchedule: 'weeklySchedule',
+  tempAwake: 'tempAwake',
+  tempSleeping: 'tempSleeping'
+};
+
 exports.Prisma.HourlyRateScalarFieldEnum = {
   id: 'id',
   providerId: 'providerId',
@@ -187,6 +195,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -213,6 +225,7 @@ exports.Prisma.ModelName = {
   Device: 'Device',
   BillHistory: 'BillHistory',
   UtilityProvider: 'UtilityProvider',
+  UserPreferences: 'UserPreferences',
   HourlyRate: 'HourlyRate'
 };
 

@@ -17,6 +17,7 @@ model User {
   locations          Location[]
   billHistory        BillHistory[]
   devices            Device[]
+  preferences        UserPreferences?
 
   @@map("users")
 }
@@ -77,6 +78,17 @@ model UtilityProvider {
   @@unique([zipCode, utilityName, rateName])
   @@index([zipCode])
   @@map("utility_providers")
+}
+
+model UserPreferences {
+  id             String @id @default(uuid()) @map("preference_id")
+  userId         String @unique @map("user_id")
+  weeklySchedule Json   @map("weekly_schedule")
+  tempAwake      Float  @map("temp_awake")
+  tempSleeping   Float  @map("temp_sleeping")
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }
 
 model HourlyRate {

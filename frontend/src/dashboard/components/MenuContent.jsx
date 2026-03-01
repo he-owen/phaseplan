@@ -14,6 +14,7 @@ import { usePage } from '../context/PageContext';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 
 const mainListItems = [
   { text: 'Home', icon: <HomeRoundedIcon /> },
@@ -22,6 +23,7 @@ const mainListItems = [
   { text: 'Billing', icon: <ReceiptLongRoundedIcon /> },
   { text: 'Optimization', icon: <TrendingDownRoundedIcon /> },
   { text: 'Tools', icon: <BuildRoundedIcon /> },
+  { text: 'Preferences', icon: <TuneRoundedIcon /> },
 ];
 
 const secondaryListItems = [

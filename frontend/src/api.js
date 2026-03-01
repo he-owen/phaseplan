@@ -162,3 +162,33 @@ export async function setUserProvider(accessToken, providerId) {
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// User preferences
+// ---------------------------------------------------------------------------
+
+/** Get the current user's preferences. */
+export async function getUserPreferences(accessToken) {
+  const res = await fetch(`${API_BASE}/api/users/me/preferences`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to get preferences");
+  }
+  return res.json();
+}
+
+/** Create or update the user's preferences. */
+export async function saveUserPreferences(accessToken, data) {
+  const res = await fetch(`${API_BASE}/api/users/me/preferences`, {
+    method: "PUT",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to save preferences");
+  }
+  return res.json();
+}

@@ -331,7 +331,8 @@ async def get_user_profile(user_id: str) -> dict | None:
         result = await session.execute(
             text("""
                 SELECT u.id, u.email, u.selected_provider_id,
-                       (SELECT l.zip FROM locations l WHERE l.user_id = u.id LIMIT 1) AS zip
+                       (SELECT l.zip FROM locations l WHERE l.user_id = u.id LIMIT 1) AS zip,
+                       EXISTS(SELECT 1 FROM user_preferences p WHERE p.user_id = u.id) AS has_preferences
                 FROM users u
                 WHERE u.id = :user_id
             """),
@@ -356,3 +357,57 @@ async def set_user_provider(user_id: str, provider_id: str | None) -> bool:
     except Exception as e:
         logger.warning("Set user provider failed: %s", e, exc_info=True)
         return False
+
+
+# ---------------------------------------------------------------------------
+# User preferences
+# ---------------------------------------------------------------------------
+
+async def upsert_user_preferences(
+    user_id: str,
+    weekly_schedule_json: str,
+    temp_awake: float,
+    temp_sleeping: float,
+) -> dict | None:
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                text("""
+                    INSERT INTO user_preferences
+                        (preference_id, user_id, weekly_schedule, temp_awake, temp_sleeping)
+                    VALUES
+                        (gen_random_uuid(), :user_id,
+                         CAST(:weekly_schedule AS jsonb), :temp_awake, :temp_sleeping)
+                    ON CONFLICT (user_id) DO UPDATE SET
+                        weekly_schedule = CAST(EXCLUDED.weekly_schedule AS jsonb),
+                        temp_awake = EXCLUDED.temp_awake,
+                        temp_sleeping = EXCLUDED.temp_sleeping
+                    RETURNING preference_id, user_id, weekly_schedule, temp_awake, temp_sleeping
+                """),
+                {
+                    "user_id": user_id,
+                    "weekly_schedule": weekly_schedule_json,
+                    "temp_awake": temp_awake,
+                    "temp_sleeping": temp_sleeping,
+                },
+            )
+            row = result.mappings().first()
+            await session.commit()
+            return dict(row) if row else None
+    except Exception as e:
+        logger.warning("Upsert user preferences failed: %s", e, exc_info=True)
+        return None
+
+
+async def get_user_preferences(user_id: str) -> dict | None:
+    async with async_session() as session:
+        result = await session.execute(
+            text("""
+                SELECT preference_id, user_id, weekly_schedule, temp_awake, temp_sleeping
+                FROM user_preferences
+                WHERE user_id = :user_id
+            """),
+            {"user_id": user_id},
+        )
+        row = result.mappings().first()
+        return dict(row) if row else None

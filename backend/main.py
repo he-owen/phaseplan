@@ -36,6 +36,8 @@ from database import (
     get_hourly_rates,
     set_user_provider as db_set_user_provider,
     get_user_profile as db_get_user_profile,
+    upsert_user_preferences as db_upsert_user_preferences,
+    get_user_preferences as db_get_user_preferences,
 )
 from rate_service import fetch_and_store_providers, generate_monthly_rates
 
@@ -306,12 +308,18 @@ async def get_profile(userinfo: dict = Depends(_require_user)):
     user_id = userinfo["sub"]
     profile = await db_get_user_profile(user_id)
     if not profile:
+        # New user may not exist in DB yet; create them from Auth0 userinfo
+        email = userinfo.get("email") or userinfo.get("name") or ""
+        await upsert_user(user_id, email or user_id)
+        profile = await db_get_user_profile(user_id)
+    if not profile:
         raise HTTPException(status_code=404, detail="User not found")
     return {
         "id": profile["id"],
         "email": profile["email"],
         "selectedProviderId": profile["selected_provider_id"],
         "zip": profile["zip"],
+        "hasPreferences": bool(profile.get("has_preferences")),
     }
 
 
@@ -332,6 +340,14 @@ async def fetch_rates_endpoint(request: Request, userinfo: dict = Depends(_requi
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"OpenEI request failed: {e}")
+    # Deduplicate by provider_id (OpenEI can return same plan multiple times)
+    seen = set()
+    unique = []
+    for p in providers:
+        pid = p["provider_id"]
+        if pid not in seen:
+            seen.add(pid)
+            unique.append(p)
     return [
         {
             "id": p["provider_id"],
@@ -341,7 +357,7 @@ async def fetch_rates_endpoint(request: Request, userinfo: dict = Depends(_requi
             "sector": p["sector"],
             "fetchedAt": p["fetched_at"].isoformat() if hasattr(p["fetched_at"], "isoformat") else str(p["fetched_at"]),
         }
-        for p in providers
+        for p in unique
     ]
 
 
@@ -420,3 +436,53 @@ async def set_provider_endpoint(request: Request, userinfo: dict = Depends(_requ
     if not ok:
         raise HTTPException(status_code=500, detail="Failed to set provider")
     return {"updated": True, "providerId": provider_id}
+
+
+# ---------------------------------------------------------------------------
+# User preferences
+# ---------------------------------------------------------------------------
+
+@app.get("/api/users/me/preferences")
+async def get_preferences_endpoint(userinfo: dict = Depends(_require_user)):
+    """Return the current user's preferences."""
+    user_id = userinfo["sub"]
+    prefs = await db_get_user_preferences(user_id)
+    if not prefs:
+        return None
+    return {
+        "id": prefs["preference_id"],
+        "weeklySchedule": prefs["weekly_schedule"],
+        "tempAwake": prefs["temp_awake"],
+        "tempSleeping": prefs["temp_sleeping"],
+    }
+
+
+@app.put("/api/users/me/preferences")
+async def set_preferences_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
+    """Create or update the user's preferences."""
+    import json as _json
+    body = await request.json()
+    user_id = userinfo["sub"]
+    required = ["weeklySchedule", "tempAwake", "tempSleeping"]
+    missing = [f for f in required if f not in body]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing fields: {missing}")
+    schedule = body["weeklySchedule"]
+    if isinstance(schedule, dict):
+        schedule_json = _json.dumps(schedule)
+    else:
+        schedule_json = schedule
+    row = await db_upsert_user_preferences(
+        user_id=user_id,
+        weekly_schedule_json=schedule_json,
+        temp_awake=float(body["tempAwake"]),
+        temp_sleeping=float(body["tempSleeping"]),
+    )
+    if not row:
+        raise HTTPException(status_code=500, detail="Failed to save preferences")
+    return {
+        "id": row["preference_id"],
+        "weeklySchedule": row["weekly_schedule"],
+        "tempAwake": row["temp_awake"],
+        "tempSleeping": row["temp_sleeping"],
+    }

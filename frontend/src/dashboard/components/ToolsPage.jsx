@@ -308,8 +308,8 @@ export default function ToolsPage() {
                 onChange={(e) => setSelectedProvider(e.target.value)}
                 sx={{ minWidth: 320 }}
               >
-                {providers.map((p) => (
-                  <MenuItem key={p.id} value={p.id}>
+                {providers.map((p, i) => (
+                  <MenuItem key={p.id ?? `provider-${i}`} value={p.id}>
                     {p.utilityName} — {p.rateName}
                   </MenuItem>
                 ))}

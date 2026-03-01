@@ -12,6 +12,7 @@ import DevicesPage from './components/DevicesPage';
 import BillingPage from './components/BillingPage';
 import OptimizationPage from './components/OptimizationPage';
 import ToolsPage from './components/ToolsPage';
+import PreferencesPage from './components/PreferencesPage';
 import OnboardingDialog from './components/OnboardingDialog';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
@@ -45,6 +46,8 @@ function PageContent() {
       return <OptimizationPage />;
     case 'Tools':
       return <ToolsPage />;
+    case 'Preferences':
+      return <PreferencesPage />;
     default:
       return <MainGrid />;
   }
@@ -64,7 +67,7 @@ function OnboardingGate({ children }) {
         const token = await getAccessTokenSilently();
         const profile = await getUserProfile(token);
         if (!cancelled) {
-          setNeedsOnboarding(!profile.selectedProviderId);
+          setNeedsOnboarding(!profile.selectedProviderId || !profile.hasPreferences);
           setChecked(true);
         }
       } catch {
