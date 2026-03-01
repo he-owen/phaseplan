@@ -1,6 +1,6 @@
 import Avatar from '@mui/material/Avatar';
-import PropTypes from 'prop-types';
 import Button from '@mui/material/Button';
+import PropTypes from 'prop-types';
 import Divider from '@mui/material/Divider';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
@@ -14,8 +14,13 @@ import SelectContent from './SelectContent';
 import { usePage } from '../context/PageContext';
 
 function SideMenuMobile({ open, toggleDrawer }) {
-  const { user } = useAuth0();
+  const { user, logout } = useAuth0();
   const { setNotificationsOpen, notificationCount } = usePage();
+
+  const handleLogout = () => {
+    toggleDrawer(false)();
+    logout({ logoutParams: { returnTo: window.location.origin } });
+  };
   return (
     <Drawer
       anchor="right"
@@ -64,8 +69,8 @@ function SideMenuMobile({ open, toggleDrawer }) {
           <Divider />
         </Stack>
         <Stack sx={{ p: 2 }}>
-          <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />}>
-            Logout
+          <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />} onClick={handleLogout}>
+            Log out
           </Button>
         </Stack>
       </Stack>
