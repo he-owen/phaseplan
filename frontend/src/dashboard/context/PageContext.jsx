@@ -9,6 +9,7 @@ const PATH_TO_PAGE = {
   '/dashboard/optimization': 'Optimization',
   '/dashboard/tools': 'Tools',
   '/dashboard/preferences': 'Preferences',
+  '/dashboard/about': 'About',
 };
 
 const PAGE_TO_PATH = {
@@ -29,6 +30,12 @@ const PageContext = React.createContext({
   setWeeklyScheduleResults: () => {},
   searchHighlight: null,
   setSearchHighlight: () => {},
+  todaySchedule: null,
+  setTodaySchedule: () => {},
+  savingsSummary: null,
+  setSavingsSummary: () => {},
+  pendingSchedules: [],
+  setPendingSchedules: () => {},
   notificationsOpen: false,
   setNotificationsOpen: () => {},
   notificationCount: null,
@@ -41,6 +48,9 @@ export function PageProvider({ children }) {
   const [optimizationResults, setOptimizationResults] = React.useState(null);
   const [weeklyScheduleResults, setWeeklyScheduleResults] = React.useState(null);
   const [searchHighlight, setSearchHighlight] = React.useState(null);
+  const [todaySchedule, setTodaySchedule] = React.useState(null);
+  const [savingsSummary, setSavingsSummary] = React.useState(null);
+  const [pendingSchedules, setPendingSchedules] = React.useState([]);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
   const [notificationCount, setNotificationCount] = React.useState(null);
 
@@ -64,12 +74,19 @@ export function PageProvider({ children }) {
       setWeeklyScheduleResults,
       searchHighlight,
       setSearchHighlight,
+      todaySchedule,
+      setTodaySchedule,
+      savingsSummary,
+      setSavingsSummary,
+      pendingSchedules,
+      setPendingSchedules,
       notificationsOpen,
       setNotificationsOpen,
       notificationCount,
       setNotificationCount,
     }),
-    [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults, searchHighlight, notificationsOpen, notificationCount],
+    [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults, searchHighlight,
+     todaySchedule, savingsSummary, pendingSchedules, notificationsOpen, notificationCount],
   );
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;

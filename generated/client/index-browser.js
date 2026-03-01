@@ -153,13 +153,13 @@ exports.Prisma.DeviceScalarFieldEnum = {
 exports.Prisma.BillHistoryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  month: 'month',
-  year: 'year',
   billTotal: 'billTotal',
+  createdDate: 'createdDate',
+  locationId: 'locationId',
+  month: 'month',
   usageKwh: 'usageKwh',
   utility: 'utility',
-  locationId: 'locationId',
-  createdDate: 'createdDate'
+  year: 'year'
 };
 
 exports.Prisma.UtilityProviderScalarFieldEnum = {
@@ -172,7 +172,8 @@ exports.Prisma.UtilityProviderScalarFieldEnum = {
   weekdayScheduleJson: 'weekdayScheduleJson',
   weekendScheduleJson: 'weekendScheduleJson',
   fuelAdjustmentsJson: 'fuelAdjustmentsJson',
-  fetchedAt: 'fetchedAt'
+  fetchedAt: 'fetchedAt',
+  service_type: 'service_type'
 };
 
 exports.Prisma.UserPreferencesScalarFieldEnum = {
@@ -193,6 +194,22 @@ exports.Prisma.HourlyRateScalarFieldEnum = {
   totalRate: 'totalRate',
   periodIndex: 'periodIndex',
   periodLabel: 'periodLabel'
+};
+
+exports.Prisma.SavedScheduleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  scheduleDate: 'scheduleDate',
+  dayOfWeek: 'dayOfWeek',
+  scheduleJson: 'scheduleJson',
+  appliancesJson: 'appliancesJson',
+  optimizedCost: 'optimizedCost',
+  typicalCost: 'typicalCost',
+  carbonOptimized: 'carbonOptimized',
+  carbonTypical: 'carbonTypical',
+  status: 'status',
+  followedAt: 'followedAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -233,7 +250,8 @@ exports.Prisma.ModelName = {
   BillHistory: 'BillHistory',
   UtilityProvider: 'UtilityProvider',
   UserPreferences: 'UserPreferences',
-  HourlyRate: 'HourlyRate'
+  HourlyRate: 'HourlyRate',
+  SavedSchedule: 'SavedSchedule'
 };
 
 /**

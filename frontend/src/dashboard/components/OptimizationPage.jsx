@@ -28,9 +28,12 @@ import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded';
 import WaterRoundedIcon from '@mui/icons-material/WaterRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import Co2RoundedIcon from '@mui/icons-material/Co2Rounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import { useAuth0 } from '@auth0/auth0-react';
 import Copyright from '../internals/components/Copyright';
-import { runDailyOptimizationMe, runWeeklyOptimizationMe, getUserPreferences } from '../../api';
+import { runDailyOptimizationMe, runWeeklyOptimizationMe, getUserPreferences, generateTodaySchedule, getScheduleHistory } from '../../api';
 import { useScrollHighlight } from '../hooks/useScrollHighlight';
 import { usePage } from '../context/PageContext';
 
@@ -289,25 +292,30 @@ export default function OptimizationPage() {
   const {
     optimizationResults: results, setOptimizationResults: setResults,
     weeklyScheduleResults, setWeeklyScheduleResults,
+    todaySchedule, savingsSummary,
   } = usePage();
   const [running, setRunning] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [weeklyRunning, setWeeklyRunning] = React.useState(false);
   const [weeklyError, setWeeklyError] = React.useState(null);
   const [loadedPrefs, setLoadedPrefs] = React.useState(null);
+  const [scheduleHistory, setScheduleHistory] = React.useState(null);
 
-  // Load the user's saved preferences once authenticated
   React.useEffect(() => {
     if (!isAuthenticated) return;
     let cancelled = false;
     (async () => {
       try {
         const token = await getAccessTokenSilently();
-        const prefs = await getUserPreferences(token);
-        if (!cancelled && prefs) setLoadedPrefs(prefs);
-      } catch {
-        // Silently fall back to defaults if preferences can't be loaded
-      }
+        const [prefs, history] = await Promise.allSettled([
+          getUserPreferences(token),
+          getScheduleHistory(token, 14),
+        ]);
+        if (!cancelled) {
+          if (prefs.status === 'fulfilled' && prefs.value) setLoadedPrefs(prefs.value);
+          if (history.status === 'fulfilled' && history.value) setScheduleHistory(history.value);
+        }
+      } catch { /* fallback to defaults */ }
     })();
     return () => { cancelled = true; };
   }, [isAuthenticated, getAccessTokenSilently]);
@@ -682,6 +690,144 @@ export default function OptimizationPage() {
             </Stack>
           </CardContent>
         </Card>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Savings & Carbon Impact                                             */}
+      {/* ------------------------------------------------------------------ */}
+      {(todaySchedule || savingsSummary) && (
+        <>
+          <Typography component="h2" variant="h6" sx={{ mt: 4, mb: 2 }}>
+            Savings & Carbon Impact
+          </Typography>
+          <Grid container spacing={2} columns={12} sx={{ mb: 2 }}>
+            {todaySchedule && (
+              <>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                        <SavingsRoundedIcon color="success" />
+                        <Typography variant="subtitle2" color="text.secondary">Today's savings</Typography>
+                      </Stack>
+                      <Typography variant="h4" color="success.main" fontWeight={700}>
+                        ${(todaySchedule.costSavings ?? 0).toFixed(2)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        ${todaySchedule.optimizedCost?.toFixed(2)} optimized vs ${todaySchedule.typicalCost?.toFixed(2)} typical
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                        <Co2RoundedIcon color="info" />
+                        <Typography variant="subtitle2" color="text.secondary">Today's carbon saved</Typography>
+                      </Stack>
+                      <Typography variant="h4" color="info.main" fontWeight={700}>
+                        {(todaySchedule.carbonSaved ?? 0).toFixed(2)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        kg CO₂ reduced by off-peak scheduling
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </>
+            )}
+            {savingsSummary && (
+              <>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                        <TrendingUpRoundedIcon color="primary" />
+                        <Typography variant="subtitle2" color="text.secondary">Total savings</Typography>
+                      </Stack>
+                      <Typography variant="h4" color="primary.main" fontWeight={700}>
+                        ${(savingsSummary.totalSavings ?? 0).toFixed(2)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        across {savingsSummary.daysFollowed ?? 0} day{savingsSummary.daysFollowed !== 1 ? 's' : ''} followed
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                        <Co2RoundedIcon color="success" />
+                        <Typography variant="subtitle2" color="text.secondary">Total carbon saved</Typography>
+                      </Stack>
+                      <Typography variant="h4" color="success.main" fontWeight={700}>
+                        {(savingsSummary.totalCarbonSaved ?? 0).toFixed(2)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        kg CO₂ · {(savingsSummary.complianceRate ?? 0).toFixed(0)}% compliance rate
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </>
+            )}
+          </Grid>
+        </>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Schedule History                                                     */}
+      {/* ------------------------------------------------------------------ */}
+      {scheduleHistory && scheduleHistory.length > 0 && (
+        <>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, mb: 2 }}>
+            <HistoryRoundedIcon color="action" />
+            <Typography component="h2" variant="h6">Schedule History</Typography>
+          </Stack>
+          <Stack spacing={1}>
+            {scheduleHistory.map((h) => {
+              const date = new Date(h.scheduleDate + 'T00:00:00');
+              const dateLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+              const statusColor = h.status === 'followed' ? 'success' : h.status === 'not_followed' ? 'error' : 'warning';
+              const statusLabel = h.status === 'followed' ? 'Followed' : h.status === 'not_followed' ? 'Not followed' : 'Pending';
+              return (
+                <Card key={h.id} variant="outlined">
+                  <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Box sx={{ minWidth: 100 }}>
+                        <Typography variant="subtitle2" fontWeight={600}>{dateLabel}</Typography>
+                        <Typography variant="caption" color="text.secondary">{h.dayOfWeek}</Typography>
+                      </Box>
+                      <Box sx={{ flexGrow: 1 }} />
+                      <Chip
+                        label={`$${h.costSavings?.toFixed(2)} saved`}
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                        icon={<SavingsRoundedIcon />}
+                      />
+                      <Chip
+                        label={`${h.carbonSaved?.toFixed(2)} kg CO₂`}
+                        size="small"
+                        color="info"
+                        variant="outlined"
+                        icon={<Co2RoundedIcon />}
+                      />
+                      <Chip
+                        label={statusLabel}
+                        size="small"
+                        color={statusColor}
+                        variant="filled"
+                      />
+                    </Stack>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Stack>
+        </>
       )}
 
       <Copyright sx={{ my: 4 }} />

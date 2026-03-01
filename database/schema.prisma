@@ -16,6 +16,7 @@ model User {
   billHistory        BillHistory[]
   devices            Device[]
   locations          Location[]
+  savedSchedules     SavedSchedule[]
   preferences        UserPreferences?
   selectedProvider   UtilityProvider? @relation(fields: [selectedProviderId], references: [id])
 
@@ -62,9 +63,9 @@ model BillHistory {
   createdDate DateTime @default(now()) @map("created_date") @db.Timestamptz(6)
   locationId  String?  @map("location_id")
   month       Int
+  year        Int
   usageKwh    Int?     @map("usage_kwh")
   utility     String?
-  year        Int
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -82,7 +83,7 @@ model UtilityProvider {
   weekendScheduleJson Json?        @map("weekend_schedule_json")
   fuelAdjustmentsJson Json?        @map("fuel_adjustments_json")
   fetchedAt           DateTime     @default(now()) @map("fetched_at") @db.Timestamptz(6)
-  serviceType         String?      @map("service_type") @db.VarChar(255)
+  service_type        String?      @db.VarChar(255)
   hourlyRates         HourlyRate[]
   users               User[]
 
@@ -117,4 +118,26 @@ model HourlyRate {
   @@unique([providerId, date, hour])
   @@index([providerId, date])
   @@map("hourly_rates")
+}
+
+model SavedSchedule {
+  id              String    @id @default(uuid()) @map("schedule_id")
+  userId          String    @map("user_id")
+  scheduleDate    DateTime  @map("schedule_date") @db.Date
+  dayOfWeek       String    @map("day_of_week")
+  scheduleJson    Json      @map("schedule_json")
+  appliancesJson  Json?     @map("appliances_json")
+  optimizedCost   Decimal   @map("optimized_cost") @db.Decimal(12, 4)
+  typicalCost     Decimal   @map("typical_cost") @db.Decimal(12, 4)
+  carbonOptimized Decimal   @map("carbon_optimized") @db.Decimal(10, 4)
+  carbonTypical   Decimal   @map("carbon_typical") @db.Decimal(10, 4)
+  status          String    @default("pending") @map("status")
+  followedAt      DateTime? @map("followed_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scheduleDate])
+  @@index([userId, status])
+  @@index([userId, scheduleDate])
+  @@map("saved_schedules")
 }

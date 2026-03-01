@@ -3,14 +3,25 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
+import LinearProgress from '@mui/material/LinearProgress';
+import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
+import Co2RoundedIcon from '@mui/icons-material/Co2Rounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { useAuth0 } from '@auth0/auth0-react';
 import Copyright from '../internals/components/Copyright';
 import ChartUserByCountry from './ChartUserByCountry';
 import PageViewsBarChart from './PageViewsBarChart';
 import SessionsChart from './SessionsChart';
 import StatCard from './StatCard';
-import { getDevices, getUserProfile, getMonthlyRates, getBills } from '../../api';
+import { getDevices, getUserProfile, getMonthlyRates, getBills, getScheduleHistory } from '../../api';
 import { useLocation } from '../context/LocationContext';
+import { usePage } from '../context/PageContext';
 
 function categorizeType(type) {
   const t = (type || '').toLowerCase();
@@ -28,7 +39,31 @@ function dayVariation(dayIndex, seed) {
   return (x - Math.floor(x)) * 0.3 + 0.85;
 }
 
-function computeDashboardData(devices, ratesByMonth, bills) {
+function buildCarbonSparkline(scheduleHistory) {
+  if (!scheduleHistory || scheduleHistory.length === 0) {
+    return Array(30).fill(0);
+  }
+  const now = new Date();
+  const byDate = {};
+  for (const h of scheduleHistory) {
+    const dateStr = h.scheduleDate?.slice(0, 10) || h.scheduleDate;
+    if (!dateStr) continue;
+    const saved = Number(h.carbonSaved) || 0;
+    if (h.status === 'followed' && saved > 0) {
+      byDate[dateStr] = (byDate[dateStr] || 0) + saved;
+    }
+  }
+  return Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (29 - i));
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const key = `${y}-${m}-${day}`;
+    return Math.round((byDate[key] || 0) * 100) / 100;
+  });
+}
+
+function computeDashboardData(devices, ratesByMonth, bills, { savingsSummary, scheduleHistory } = {}) {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
@@ -81,8 +116,6 @@ function computeDashboardData(devices, ratesByMonth, bills) {
     }
   }
 
-  const deviceSparkline = Array.from({ length: 30 }, () => devices.length);
-
   const usageTrend =
     usageSparkline[29] < usageSparkline[0] ? 'down' : usageSparkline[29] > usageSparkline[0] ? 'up' : 'neutral';
 
@@ -96,6 +129,15 @@ function computeDashboardData(devices, ratesByMonth, bills) {
     costTrend = costSparkline[29] < costSparkline[0] ? 'down' : costSparkline[29] > costSparkline[0] ? 'up' : 'neutral';
   }
 
+  const carbonSparkline = buildCarbonSparkline(scheduleHistory);
+  const totalCarbon = savingsSummary?.totalCarbonSaved ?? 0;
+  const carbonTrend =
+    carbonSparkline.length >= 7 && carbonSparkline.slice(-7).some((v) => v > 0)
+      ? 'up'
+      : totalCarbon > 0
+        ? 'neutral'
+        : 'neutral';
+
   const statCards = [
     {
       title: 'Today\u2019s Usage',
@@ -105,11 +147,11 @@ function computeDashboardData(devices, ratesByMonth, bills) {
       data: usageSparkline,
     },
     {
-      title: 'Active Devices',
-      value: String(devices.length),
-      interval: 'Currently registered',
-      trend: 'neutral',
-      data: deviceSparkline,
+      title: 'Carbon Saved',
+      value: `${Number(totalCarbon).toFixed(2)} kg CO₂`,
+      interval: 'From followed schedules',
+      trend: carbonTrend,
+      data: carbonSparkline,
     },
   ];
 
@@ -189,8 +231,7 @@ function computeDashboardData(devices, ratesByMonth, bills) {
 const EMPTY_DATA = {
   statCards: [
     { title: 'Today\u2019s Usage', value: '0 kWh', interval: 'No data', trend: 'neutral', data: Array(30).fill(0) },
-    { title: 'Monthly Cost', value: '$0.00', interval: 'No data', trend: 'neutral', data: Array(30).fill(0) },
-    { title: 'Active Devices', value: '0', interval: 'No devices', trend: 'neutral', data: Array(30).fill(0) },
+    { title: 'Carbon Saved', value: '0.00 kg CO₂', interval: 'From followed schedules', trend: 'neutral', data: Array(30).fill(0) },
   ],
   pieData: [],
   pieCategories: [],
@@ -202,6 +243,7 @@ const EMPTY_DATA = {
 export default function MainGrid() {
   const { getAccessTokenSilently } = useAuth0();
   const { selectedLocationId } = useLocation();
+  const { todaySchedule, savingsSummary } = usePage();
   const [loading, setLoading] = React.useState(true);
   const [dashData, setDashData] = React.useState(null);
 
@@ -210,10 +252,11 @@ export default function MainGrid() {
     async function load() {
       try {
         const token = await getAccessTokenSilently();
-        const [allDevices, profile, bills] = await Promise.all([
+        const [allDevices, profile, bills, scheduleHistory] = await Promise.all([
           getDevices(token),
           getUserProfile(token),
           getBills(token).catch(() => []),
+          getScheduleHistory(token, 30).catch(() => []),
         ]);
         const devices = selectedLocationId
           ? allDevices.filter((d) => d.locationId === selectedLocationId)
@@ -240,7 +283,10 @@ export default function MainGrid() {
         }
 
         if (!cancelled) {
-          setDashData(computeDashboardData(devices, ratesByMonth, bills));
+          setDashData(computeDashboardData(devices, ratesByMonth, bills, {
+            savingsSummary,
+            scheduleHistory: Array.isArray(scheduleHistory) ? scheduleHistory : [],
+          }));
           setLoading(false);
         }
       } catch (e) {
@@ -250,7 +296,7 @@ export default function MainGrid() {
     }
     load();
     return () => { cancelled = true; };
-  }, [getAccessTokenSilently, selectedLocationId]);
+  }, [getAccessTokenSilently, selectedLocationId, savingsSummary]);
 
   if (loading) {
     return (
@@ -278,6 +324,60 @@ export default function MainGrid() {
             <StatCard {...card} />
           </Grid>
         ))}
+
+        {/* Today's schedule savings */}
+        {todaySchedule && (
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card variant="outlined" sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                  <AutoAwesomeRoundedIcon color="primary" />
+                  <Typography variant="subtitle2" color="text.secondary">Today's Schedule</Typography>
+                </Stack>
+                <Typography variant="h4" color="success.main" fontWeight={700}>
+                  ${(todaySchedule.costSavings ?? 0).toFixed(2)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  potential savings · {(todaySchedule.carbonSaved ?? 0).toFixed(2)} kg CO₂ reducible
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Cumulative savings */}
+        {savingsSummary && savingsSummary.totalSchedules > 0 && (
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card variant="outlined" sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                  <TrendingUpRoundedIcon color="success" />
+                  <Typography variant="subtitle2" color="text.secondary">Lifetime Savings</Typography>
+                </Stack>
+                <Typography variant="h4" color="success.main" fontWeight={700}>
+                  ${(savingsSummary.totalSavings ?? 0).toFixed(2)}
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                  <Chip
+                    icon={<Co2RoundedIcon />}
+                    label={`${(savingsSummary.totalCarbonSaved ?? 0).toFixed(2)} kg CO₂`}
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                  />
+                  <Chip
+                    icon={<CheckCircleRoundedIcon />}
+                    label={`${(savingsSummary.complianceRate ?? 0).toFixed(0)}%`}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         <Grid size={{ xs: 12, sm: 12, lg: 6 }}>
           <PageViewsBarChart data={data.costBarData} />
         </Grid>
