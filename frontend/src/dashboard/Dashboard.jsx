@@ -3,6 +3,7 @@ import { alpha } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import AppNavbar from './components/AppNavbar';
 import Header from './components/Header';
@@ -15,7 +16,7 @@ import PreferencesPage from './components/PreferencesPage';
 import OnboardingDialog from './components/OnboardingDialog';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
-import { PageProvider, usePage } from './context/PageContext';
+import { PageProvider } from './context/PageContext';
 import { LocationProvider } from './context/LocationContext';
 import { getUserProfile } from '../api';
 import {
@@ -31,25 +32,6 @@ const xThemeComponents = {
   ...datePickersCustomizations,
   ...treeViewCustomizations,
 };
-
-function PageContent() {
-  const { currentPage } = usePage();
-
-  switch (currentPage) {
-    case 'Devices':
-      return <DevicesPage />;
-    case 'Billing':
-      return <BillingPage />;
-    case 'Optimization':
-      return <OptimizationPage />;
-    case 'Tools':
-      return <ToolsPage />;
-    case 'Preferences':
-      return <PreferencesPage />;
-    default:
-      return <MainGrid />;
-  }
-}
 
 function OnboardingGate({ children }) {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -119,7 +101,15 @@ export default function Dashboard(props) {
                   }}
                 >
                   <Header />
-                  <PageContent />
+                  <Routes>
+                    <Route index element={<MainGrid />} />
+                    <Route path="devices" element={<DevicesPage />} />
+                    <Route path="billing" element={<BillingPage />} />
+                    <Route path="optimization" element={<OptimizationPage />} />
+                    <Route path="tools" element={<ToolsPage />} />
+                    <Route path="preferences" element={<PreferencesPage />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
                 </Stack>
               </Box>
             </Box>

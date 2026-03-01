@@ -15,7 +15,7 @@ export default function App() {
       <SyncUserToBackend />
       <Routes>
         <Route
-          path="/"
+          path="/*"
           element={
             <ProtectedRoute>
               <Dashboard />
@@ -33,7 +33,6 @@ export default function App() {
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-in-side" element={<SignInSide />} />
         <Route path="/sign-up" element={<SignUp />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

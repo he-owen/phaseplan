@@ -27,6 +27,9 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Collapse from '@mui/material/Collapse';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -37,6 +40,8 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import heic2any from 'heic2any';
 import Copyright from '../internals/components/Copyright';
 import {
   getUserProfile,
@@ -287,35 +292,30 @@ function UtilityRatesView() {
   }
 
   return (
-    <Card variant="outlined" sx={{ mb: 3 }}>
+    <Card variant="outlined">
       <CardContent>
-        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="subtitle1" fontWeight={600}>
-            Utility Rates
-          </Typography>
-          <Stack direction="row" spacing={1} alignItems="flex-end">
-            <TextField
-              select
-              label="Month"
-              size="small"
-              value={rateMonth}
-              onChange={(e) => setRateMonth(Number(e.target.value))}
-              sx={{ width: 130 }}
-            >
-              {MONTHS.map((m, i) => (
-                <MenuItem key={m} value={i + 1}>{m}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              type="number"
-              label="Year"
-              size="small"
-              value={rateYear}
-              onChange={(e) => setRateYear(Number(e.target.value))}
-              inputProps={{ min: 2020, max: 2035 }}
-              sx={{ width: 90 }}
-            />
-          </Stack>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end', alignItems: 'center', mb: 2 }}>
+          <TextField
+            select
+            label="Month"
+            size="small"
+            value={rateMonth}
+            onChange={(e) => setRateMonth(Number(e.target.value))}
+            sx={{ width: 130 }}
+          >
+            {MONTHS.map((m, i) => (
+              <MenuItem key={m} value={i + 1}>{m}</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            type="number"
+            label="Year"
+            size="small"
+            value={rateYear}
+            onChange={(e) => setRateYear(Number(e.target.value))}
+            inputProps={{ min: 2020, max: 2035 }}
+            sx={{ width: 90 }}
+          />
         </Stack>
 
         {error && (
@@ -474,22 +474,44 @@ export default function BillingPage() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setUploadFile(file);
-      setExtractedData(null);
-      setExtractError(null);
+  const ACCEPTED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/heic'];
+  const isHeic = (file) => file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic');
+
+  const processFile = async (file) => {
+    if (isHeic(file)) {
+      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      const converted = Array.isArray(blob) ? blob[0] : blob;
+      return new File([converted], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+    }
+    return file;
+  };
+
+  const handleFileChange = async (e) => {
+    const raw = e.target.files?.[0];
+    if (raw && (ACCEPTED_TYPES.includes(raw.type) || isHeic(raw))) {
+      try {
+        const file = await processFile(raw);
+        setUploadFile(file);
+        setExtractedData(null);
+        setExtractError(null);
+      } catch {
+        setExtractError('Failed to process HEIC image');
+      }
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
-    const file = e.dataTransfer?.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setUploadFile(file);
-      setExtractedData(null);
-      setExtractError(null);
+    const raw = e.dataTransfer?.files?.[0];
+    if (raw && (ACCEPTED_TYPES.includes(raw.type) || isHeic(raw))) {
+      try {
+        const file = await processFile(raw);
+        setUploadFile(file);
+        setExtractedData(null);
+        setExtractError(null);
+      } catch {
+        setExtractError('Failed to process HEIC image');
+      }
     }
   };
 
@@ -599,18 +621,12 @@ export default function BillingPage() {
         Billing
       </Typography>
 
-      <Box id="billing-rates">
-        <UtilityRatesView />
-      </Box>
-
-      <Divider sx={{ my: 3 }} />
 
       {error && (
         <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-
       <Stack
         id="billing-history"
         direction="row"
@@ -671,12 +687,23 @@ export default function BillingPage() {
         />
       )}
 
+      <Accordion id="billing-rates" defaultExpanded={false} sx={{ mt: 3 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Utility Rates
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ pt: 0 }}>
+          <UtilityRatesView />
+        </AccordionDetails>
+      </Accordion>
+
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editingBill ? 'Edit bill' : 'Add utility bill'}</DialogTitle>
         {!editingBill && (
           <Tabs value={tab} onChange={handleTabChange} aria-label="Add bill method" sx={{ px: 2 }}>
             <Tab label="Enter manually" {...a11yProps(0)} />
-            <Tab label="Upload PDF" {...a11yProps(1)} />
+            <Tab label="Upload bill" {...a11yProps(1)} />
           </Tabs>
         )}
         <DialogContent>
@@ -735,7 +762,7 @@ export default function BillingPage() {
                 <input
                   id="bill-file-input"
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,image/png,image/jpeg,image/webp,image/heic,.heic"
                   hidden
                   onChange={handleFileChange}
                 />
@@ -767,7 +794,7 @@ export default function BillingPage() {
                       Drag and drop or click to browse
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      PDF files only
+                      PDF, PNG, JPG, or WEBP
                     </Typography>
                   </>
                 )}

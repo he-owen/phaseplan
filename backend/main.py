@@ -578,27 +578,44 @@ async def create_bill_endpoint(request: Request, userinfo: dict = Depends(_requi
     return _bill_response(row)
 
 
+ALLOWED_BILL_MIMES = {
+    "application/pdf": "application/pdf",
+    "image/png": "image/png",
+    "image/jpeg": "image/jpeg",
+    "image/jpg": "image/jpeg",
+    "image/webp": "image/webp",
+    "image/heic": "image/heic",
+}
+
+
 @app.post("/api/bills/extract")
 async def extract_bill_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
-    """Accept a PDF upload, use Gemini to extract bill data, and return the extracted fields."""
+    """Accept a PDF or image upload, use Gemini to extract bill data."""
     if not _gemini:
         raise HTTPException(status_code=503, detail="Gemini API not configured")
 
     content_type = request.headers.get("content-type", "")
+    mime_type = "application/pdf"
+
     if "multipart/form-data" in content_type:
         form = await request.form()
         file = form.get("file")
         if not file:
             raise HTTPException(status_code=400, detail="No file uploaded")
-        pdf_bytes = await file.read()
+        file_bytes = await file.read()
+        file_mime = getattr(file, "content_type", "") or ""
+        mime_type = ALLOWED_BILL_MIMES.get(file_mime, file_mime)
     else:
-        pdf_bytes = await request.body()
+        file_bytes = await request.body()
 
-    if not pdf_bytes:
+    if not file_bytes:
         raise HTTPException(status_code=400, detail="Empty file")
 
+    if mime_type not in ALLOWED_BILL_MIMES.values():
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {mime_type}")
+
     try:
-        extracted = await asyncio.to_thread(_gemini.extract_bill_from_pdf, pdf_bytes)
+        extracted = await asyncio.to_thread(_gemini.extract_bill, file_bytes, mime_type)
     except Exception as e:
         logger.exception("Gemini bill extraction failed")
         raise HTTPException(status_code=502, detail=f"Failed to extract bill data: {e}")
