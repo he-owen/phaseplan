@@ -179,7 +179,7 @@ export default function Dashboard(props) {
                       <Route path="tools" element={<ToolsPage />} />
                       <Route path="preferences" element={<PreferencesPage />} />
                       <Route path="about" element={<AboutPage />} />
-                      <Route path="*" element={<Navigate to="/" replace />} />
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </Stack>
                 </Box>

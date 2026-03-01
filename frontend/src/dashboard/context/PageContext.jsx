@@ -2,18 +2,24 @@ import * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const PATH_TO_PAGE = {
-  '/': 'Home',
-  '/devices': 'Devices',
-  '/billing': 'Billing',
-  '/optimization': 'Optimization',
-  '/tools': 'Tools',
-  '/preferences': 'Preferences',
-  '/about': 'About',
+  '/dashboard': 'Home',
+  '/dashboard/': 'Home',
+  '/dashboard/devices': 'Devices',
+  '/dashboard/billing': 'Billing',
+  '/dashboard/optimization': 'Optimization',
+  '/dashboard/tools': 'Tools',
+  '/dashboard/preferences': 'Preferences',
+  '/dashboard/about': 'About',
 };
 
-const PAGE_TO_PATH = Object.fromEntries(
-  Object.entries(PATH_TO_PAGE).map(([path, page]) => [page, path]),
-);
+const PAGE_TO_PATH = {
+  Home: '/dashboard',
+  Devices: '/dashboard/devices',
+  Billing: '/dashboard/billing',
+  Optimization: '/dashboard/optimization',
+  Tools: '/dashboard/tools',
+  Preferences: '/dashboard/preferences',
+};
 
 const PageContext = React.createContext({
   currentPage: 'Home',
@@ -52,7 +58,7 @@ export function PageProvider({ children }) {
 
   const setCurrentPage = React.useCallback(
     (page) => {
-      const path = PAGE_TO_PATH[page] || '/';
+      const path = PAGE_TO_PATH[page] || '/dashboard';
       navigate(path);
     },
     [navigate],

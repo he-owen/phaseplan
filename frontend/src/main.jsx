@@ -17,7 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         redirect_uri: window.location.origin,
       }}
       onRedirectCallback={(appState) => {
-        window.location.replace(appState?.returnTo ?? '/');
+        window.location.replace(appState?.returnTo ?? '/dashboard');
       }}
     >
       <BrowserRouter>

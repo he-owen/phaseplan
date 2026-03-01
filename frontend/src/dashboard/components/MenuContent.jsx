@@ -13,25 +13,27 @@ import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 
+const DASHBOARD_BASE = '/dashboard';
+
 const mainListItems = [
-  { text: 'Home', icon: <HomeRoundedIcon />, path: '/' },
-  { text: 'Devices', icon: <DevicesRoundedIcon />, path: '/devices' },
-  { text: 'Billing', icon: <ReceiptLongRoundedIcon />, path: '/billing' },
-  { text: 'Optimization', icon: <TrendingDownRoundedIcon />, path: '/optimization' },
-  { text: 'Tools', icon: <BuildRoundedIcon />, path: '/tools' },
-  { text: 'Preferences', icon: <TuneRoundedIcon />, path: '/preferences' },
+  { text: 'Home', icon: <HomeRoundedIcon />, path: DASHBOARD_BASE },
+  { text: 'Devices', icon: <DevicesRoundedIcon />, path: `${DASHBOARD_BASE}/devices` },
+  { text: 'Billing', icon: <ReceiptLongRoundedIcon />, path: `${DASHBOARD_BASE}/billing` },
+  { text: 'Optimization', icon: <TrendingDownRoundedIcon />, path: `${DASHBOARD_BASE}/optimization` },
+  { text: 'Tools', icon: <BuildRoundedIcon />, path: `${DASHBOARD_BASE}/tools` },
+  { text: 'Preferences', icon: <TuneRoundedIcon />, path: `${DASHBOARD_BASE}/preferences` },
 ];
 
 const secondaryListItems = [
-  { text: 'About', icon: <InfoRoundedIcon />, path: '/about' },
+  { text: 'About', icon: <InfoRoundedIcon />, path: `${DASHBOARD_BASE}/about` },
 ];
 
 export default function MenuContent() {
   const location = useLocation();
 
   const isSelected = (path) => {
-    if (path === '/') return location.pathname === '/' || location.pathname === '';
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    if (path === DASHBOARD_BASE) return location.pathname === DASHBOARD_BASE || location.pathname === `${DASHBOARD_BASE}/`;
+    return location.pathname === path;
   };
 
   return (
