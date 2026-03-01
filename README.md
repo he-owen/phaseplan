@@ -1,38 +1,86 @@
-# ⚡ PhasePlan
+# PhasePlan
 
 Smart energy management for your home. Monitor your devices, optimize electricity costs with time-of-use rates, and reduce your carbon footprint.
 
 ---
 
-## ✨ Features
+## Features
 
-- **AI-Powered Device Enrichment** — Add a device by name; Gemini auto-detects type, wattage, smart capability, and typical run duration
-- **Daily Cost Optimization** — Linear programming solver (PuLP/CBC) schedules appliances across 24 hours to minimize electricity cost using real TOU pricing
-- **Weekly Smart Scheduling** — Finds the cheapest day of the week to run heavy appliances like washers, dryers, dishwashers, and EV chargers
-- **Bill OCR Extraction** — Upload a utility bill image or PDF; Gemini extracts month, year, amount, kWh, and utility provider automatically
-- **Utility Rate Integration** — Fetches real rate structures from the OpenEI API by ZIP code with peak/mid-peak/off-peak delivery pricing
-- **Carbon Footprint Tracking** — Estimates CO₂ emissions per device with time-varying carbon intensity factors
-- **Schedule Feedback Loop** — Confirms whether you followed suggested schedules; tracks compliance rate and cumulative savings over time
-- **Multi-Location Support** — Manage devices and rates across multiple addresses
-- **Auth0 Authentication** — Secure login with protected routes and automatic user sync
+### Optimization Engine
+- MILP solver (PuLP/CBC) takes your devices, utility hourly rates, and weekly schedule to find the cheapest way to run everything across 24 hours
+- Cycle appliances (washers, dryers, dishwashers) are scheduled in contiguous blocks
+- HVAC modeled with pre-cooling/pre-heating before you arrive home
+- Non-smart devices constrained to hours you're actually around
+- Weekly mode checks all 7 days to find the cheapest day for heavy loads like laundry or EV charging
+
+### AI-Powered Device Setup
+- Type a device name (and optionally brand/model) and Gemini 2.5 Flash with Google Search grounding fills in type, wattage, smart capability, and run duration
+- Batch-add up to 50 of the same device at once
+- Edit energy, run time, and location inline in the data grid
+
+### Bill OCR
+- Upload a bill as PDF or image (PNG, JPG, WEBP, HEIC)
+- Gemini extracts month, year, amount, kWh, and utility provider
+- Review and edit extracted fields before saving
+
+### Utility Rate Integration
+- Fetches real rate structures from the OpenEI API by ZIP code
+- Computes hourly rates for every day in a month, classifying each hour as peak, mid-peak, or off-peak
+- Synthetic delivery cost model fills in gaps for energy-only rates
+- Feeds directly into the optimizer
+
+### Dashboard
+- Today's usage and carbon saved with 30-day sparklines and trend indicators
+- Monthly cost bar chart, daily energy line chart, energy-by-category pie chart
+- Today's potential savings and lifetime totals (dollars saved, CO2 reduced, compliance rate)
+
+### Schedule Feedback
+- Daily dialog asks if you followed the suggested schedule
+- Responses feed into compliance rate and cumulative savings
+- 14-day schedule history on the optimization page
+
+### Notifications
+- Upcoming device run windows (next 2 hours)
+- Peak rate alerts
+- Cheapest off-peak hour today
+- Bill reminder if nothing logged for the current month
+
+### Google Home Script Generator
+- Generates YAML automation scripts from optimization results
+- Copy to clipboard for Google Home routines
+
+### Onboarding
+- 3-step setup: ZIP code, utility provider/rate plan selection, weekly schedule and thermostat preferences
+- Creates your first location and generates rates automatically
+
+### Preferences
+- Per-day home/awake hours and thermostat temperatures
+- Manage multiple addresses with ZIP codes
+- Copy-to-all-days shortcut for the weekly schedule
+
+### Other
+- Multi-location support with per-location device filtering across all views
+- Auth0 authentication with protected routes and automatic backend user sync
+- Dark/light mode toggle
+- Landing page with feature overview, how-it-works flow, FAQ, and dashboard preview
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React 18, Vite 6, React Router 7, MUI 7 (Material UI), MUI X Charts / DataGrid / DatePickers, react-spring |
-| **Backend** | Python 3.12, FastAPI, Uvicorn, SQLAlchemy (async), asyncpg, PuLP (LP solver) |
-| **AI / ML** | Google Gemini 2.5 Flash (`google-genai`) — device enrichment + bill OCR |
-| **Database** | PostgreSQL 16, Prisma (schema management + migrations) |
-| **Auth** | Auth0 (`@auth0/auth0-react`) |
+| **Frontend** | React 18, Vite 6, React Router 7, MUI 7, MUI X Charts / DataGrid / DatePickers, react-spring |
+| **Backend** | Python 3.12, FastAPI, Uvicorn, SQLAlchemy (async), asyncpg, PuLP (MILP solver) |
+| **AI** | Google Gemini 2.5 Flash — device enrichment + bill OCR |
+| **Database** | PostgreSQL 16, Prisma |
+| **Auth** | Auth0 |
 | **External APIs** | OpenEI Utility Rates API |
 | **Deployment** | Docker Compose (dev), Vercel (frontend), Render (backend + DB) |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
 git clone https://github.com/your-org/phaseplan.git
