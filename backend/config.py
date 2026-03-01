@@ -10,7 +10,9 @@ for _p in (Path(__file__).resolve().parent.parent / ".env", Path.cwd() / ".env")
         break
 
 # Use asyncpg for async SQLAlchemy (Supabase/etc often give postgresql://)
-_raw_db = os.getenv("DATABASE_URL", "postgresql+asyncpg://app:changeme@localhost:5432/appdb")
+_raw_db = os.getenv(
+    "DATABASE_URL", "postgresql+asyncpg://app:changeme@localhost:5432/appdb"
+)
 if _raw_db.startswith("postgresql://") and "+asyncpg" not in _raw_db:
     DATABASE_URL = _raw_db.replace("postgresql://", "postgresql+asyncpg://", 1)
 else:
@@ -21,9 +23,15 @@ PORT = int(os.getenv("PORT", "8000"))
 # Comma-separated origins allowed by CORS (e.g. http://localhost:5173,https://app.example.com)
 CORS_ORIGINS = [
     origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+        "https://henhacks2026.vercel.app",
+    ).split(",")
     if origin.strip()
 ]
 
 # Auth0 (for validating sync requests via userinfo). Backend reads AUTH0_DOMAIN or VITE_AUTH0_DOMAIN.
-AUTH0_DOMAIN = (os.getenv("AUTH0_DOMAIN") or os.getenv("VITE_AUTH0_DOMAIN") or "").rstrip("/")
+AUTH0_DOMAIN = (
+    os.getenv("AUTH0_DOMAIN") or os.getenv("VITE_AUTH0_DOMAIN") or ""
+).rstrip("/")
