@@ -19,7 +19,7 @@ import ChartUserByCountry from './ChartUserByCountry';
 import PageViewsBarChart from './PageViewsBarChart';
 import SessionsChart from './SessionsChart';
 import StatCard from './StatCard';
-import { getDevices, getUserProfile, getMonthlyRates, getBills } from '../../api';
+import { getDevices, getUserProfile, getMonthlyRates, getBills, getScheduleHistory } from '../../api';
 import { useLocation } from '../context/LocationContext';
 import { usePage } from '../context/PageContext';
 
@@ -39,7 +39,31 @@ function dayVariation(dayIndex, seed) {
   return (x - Math.floor(x)) * 0.3 + 0.85;
 }
 
-function computeDashboardData(devices, ratesByMonth, bills) {
+function buildCarbonSparkline(scheduleHistory) {
+  if (!scheduleHistory || scheduleHistory.length === 0) {
+    return Array(30).fill(0);
+  }
+  const now = new Date();
+  const byDate = {};
+  for (const h of scheduleHistory) {
+    const dateStr = h.scheduleDate?.slice(0, 10) || h.scheduleDate;
+    if (!dateStr) continue;
+    const saved = Number(h.carbonSaved) || 0;
+    if (h.status === 'followed' && saved > 0) {
+      byDate[dateStr] = (byDate[dateStr] || 0) + saved;
+    }
+  }
+  return Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (29 - i));
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const key = `${y}-${m}-${day}`;
+    return Math.round((byDate[key] || 0) * 100) / 100;
+  });
+}
+
+function computeDashboardData(devices, ratesByMonth, bills, { savingsSummary, scheduleHistory } = {}) {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
@@ -92,8 +116,6 @@ function computeDashboardData(devices, ratesByMonth, bills) {
     }
   }
 
-  const deviceSparkline = Array.from({ length: 30 }, () => devices.length);
-
   const usageTrend =
     usageSparkline[29] < usageSparkline[0] ? 'down' : usageSparkline[29] > usageSparkline[0] ? 'up' : 'neutral';
 
@@ -107,6 +129,15 @@ function computeDashboardData(devices, ratesByMonth, bills) {
     costTrend = costSparkline[29] < costSparkline[0] ? 'down' : costSparkline[29] > costSparkline[0] ? 'up' : 'neutral';
   }
 
+  const carbonSparkline = buildCarbonSparkline(scheduleHistory);
+  const totalCarbon = savingsSummary?.totalCarbonSaved ?? 0;
+  const carbonTrend =
+    carbonSparkline.length >= 7 && carbonSparkline.slice(-7).some((v) => v > 0)
+      ? 'up'
+      : totalCarbon > 0
+        ? 'neutral'
+        : 'neutral';
+
   const statCards = [
     {
       title: 'Today\u2019s Usage',
@@ -116,11 +147,11 @@ function computeDashboardData(devices, ratesByMonth, bills) {
       data: usageSparkline,
     },
     {
-      title: 'Active Devices',
-      value: String(devices.length),
-      interval: 'Currently registered',
-      trend: 'neutral',
-      data: deviceSparkline,
+      title: 'Carbon Saved',
+      value: `${Number(totalCarbon).toFixed(2)} kg CO₂`,
+      interval: 'From followed schedules',
+      trend: carbonTrend,
+      data: carbonSparkline,
     },
   ];
 
@@ -200,8 +231,7 @@ function computeDashboardData(devices, ratesByMonth, bills) {
 const EMPTY_DATA = {
   statCards: [
     { title: 'Today\u2019s Usage', value: '0 kWh', interval: 'No data', trend: 'neutral', data: Array(30).fill(0) },
-    { title: 'Monthly Cost', value: '$0.00', interval: 'No data', trend: 'neutral', data: Array(30).fill(0) },
-    { title: 'Active Devices', value: '0', interval: 'No devices', trend: 'neutral', data: Array(30).fill(0) },
+    { title: 'Carbon Saved', value: '0.00 kg CO₂', interval: 'From followed schedules', trend: 'neutral', data: Array(30).fill(0) },
   ],
   pieData: [],
   pieCategories: [],
@@ -222,10 +252,11 @@ export default function MainGrid() {
     async function load() {
       try {
         const token = await getAccessTokenSilently();
-        const [allDevices, profile, bills] = await Promise.all([
+        const [allDevices, profile, bills, scheduleHistory] = await Promise.all([
           getDevices(token),
           getUserProfile(token),
           getBills(token).catch(() => []),
+          getScheduleHistory(token, 30).catch(() => []),
         ]);
         const devices = selectedLocationId
           ? allDevices.filter((d) => d.locationId === selectedLocationId)
@@ -252,7 +283,10 @@ export default function MainGrid() {
         }
 
         if (!cancelled) {
-          setDashData(computeDashboardData(devices, ratesByMonth, bills));
+          setDashData(computeDashboardData(devices, ratesByMonth, bills, {
+            savingsSummary,
+            scheduleHistory: Array.isArray(scheduleHistory) ? scheduleHistory : [],
+          }));
           setLoading(false);
         }
       } catch (e) {
@@ -262,7 +296,7 @@ export default function MainGrid() {
     }
     load();
     return () => { cancelled = true; };
-  }, [getAccessTokenSilently, selectedLocationId]);
+  }, [getAccessTokenSilently, selectedLocationId, savingsSummary]);
 
   if (loading) {
     return (

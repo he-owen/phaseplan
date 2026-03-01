@@ -74,6 +74,7 @@ SEED_USERS = [
         "email": "saakethp@udel.edu",
         "locations": [
             {"name": "Home", "zip": "19711"},
+            {"name": "Cabin", "zip": "19901"},
         ],
         "devices": [
             {"name": "Smart Refrigerator",      "brand": "Samsung",  "model": "RF28R7551SR"},
@@ -85,6 +86,8 @@ SEED_USERS = [
             {"name": "Desktop Computer",         "brand": "Apple",    "model": "Mac Studio M2 Max"},
             {"name": "Smart Light Bulbs (4-pack)", "brand": "Philips", "model": "Hue A19 White"},
             {"name": "Dishwasher",               "brand": "Bosch",    "model": "SHPM88Z75N"},
+            {"name": "Space Heater",             "brand": "Vornado",  "model": "AVH10", "location": "Cabin"},
+            {"name": "Mini Fridge",               "brand": "Midea",    "model": "MCR40S3AWW", "location": "Cabin"},
         ],
         "bills": [
             {"month": 3,  "year": 2025, "total": 142.30, "kwh": 980,  "utility": "Delmarva Power"},
@@ -99,6 +102,12 @@ SEED_USERS = [
             {"month": 12, "year": 2025, "total": 152.70, "kwh": 1060, "utility": "Delmarva Power"},
             {"month": 1,  "year": 2026, "total": 161.20, "kwh": 1120, "utility": "Delmarva Power"},
             {"month": 2,  "year": 2026, "total": 148.80, "kwh": 1030, "utility": "Delmarva Power"},
+        ],
+        "bills_second_location": [
+            {"month": 11, "year": 2025, "total": 42.50, "kwh": 280, "utility": "Delmarva Power"},
+            {"month": 12, "year": 2025, "total": 58.20, "kwh": 390, "utility": "Delmarva Power"},
+            {"month": 1,  "year": 2026, "total": 62.80, "kwh": 420, "utility": "Delmarva Power"},
+            {"month": 2,  "year": 2026, "total": 55.40, "kwh": 365, "utility": "Delmarva Power"},
         ],
         "preferences": {
             "temp_awake": 72,
@@ -118,6 +127,7 @@ SEED_USERS = [
         "email": "brendonu1@gmail.com",
         "locations": [
             {"name": "Home", "zip": "19702"},
+            {"name": "Cabin", "zip": "19902"},
         ],
         "devices": [
             {"name": "French Door Refrigerator", "brand": "Whirlpool", "model": "WRX735SDHZ"},
@@ -130,6 +140,8 @@ SEED_USERS = [
             {"name": "EV Charger",                "brand": "Tesla",     "model": "Wall Connector Gen 3"},
             {"name": "Window AC Unit",            "brand": "LG",        "model": "LW8016ER"},
             {"name": "Gaming Console",            "brand": "Sony",      "model": "PlayStation 5"},
+            {"name": "Portable AC",               "brand": "Black+Decker", "model": "BPACT14HWT", "location": "Cabin"},
+            {"name": "Coffee Maker",              "brand": "Keurig",    "model": "K-Elite", "location": "Cabin"},
         ],
         "bills": [
             {"month": 3,  "year": 2025, "total": 168.40, "kwh": 1160, "utility": "Delmarva Power"},
@@ -144,6 +156,12 @@ SEED_USERS = [
             {"month": 12, "year": 2025, "total": 178.50, "kwh": 1240, "utility": "Delmarva Power"},
             {"month": 1,  "year": 2026, "total": 190.40, "kwh": 1320, "utility": "Delmarva Power"},
             {"month": 2,  "year": 2026, "total": 175.90, "kwh": 1220, "utility": "Delmarva Power"},
+        ],
+        "bills_second_location": [
+            {"month": 10, "year": 2025, "total": 38.90, "kwh": 255, "utility": "Delmarva Power"},
+            {"month": 11, "year": 2025, "total": 52.40, "kwh": 345, "utility": "Delmarva Power"},
+            {"month": 12, "year": 2025, "total": 61.20, "kwh": 405, "utility": "Delmarva Power"},
+            {"month": 1,  "year": 2026, "total": 58.70, "kwh": 388, "utility": "Delmarva Power"},
         ],
         "preferences": {
             "temp_awake": 71,
@@ -189,6 +207,12 @@ SEED_USERS = [
             {"month": 12, "year": 2025, "total": 140.90, "kwh": 980,  "utility": "Delmarva Power"},
             {"month": 1,  "year": 2026, "total": 149.60, "kwh": 1040, "utility": "Delmarva Power"},
             {"month": 2,  "year": 2026, "total": 138.20, "kwh": 960,  "utility": "Delmarva Power"},
+        ],
+        "bills_second_location": [
+            {"month": 11, "year": 2025, "total": 35.60, "kwh": 235, "utility": "Delmarva Power"},
+            {"month": 12, "year": 2025, "total": 48.90, "kwh": 322, "utility": "Delmarva Power"},
+            {"month": 1,  "year": 2026, "total": 51.20, "kwh": 338, "utility": "Delmarva Power"},
+            {"month": 2,  "year": 2026, "total": 46.80, "kwh": 308, "utility": "Delmarva Power"},
         ],
         "preferences": {
             "temp_awake": 73,
@@ -422,6 +446,7 @@ async def seed_user(user_def: dict, clean: bool = False, bills_only: bool = Fals
         log.info("  Enriching device: %s %s %s ...", dev["brand"], dev["name"], dev["model"])
         enriched = enrich_device(dev["name"], dev["brand"], dev["model"])
 
+        dev_location = location_ids.get(dev.get("location", "Home"), home_location_id)
         row = await db_create_device(
             user_id=user_id,
             name=dev["name"],
@@ -431,7 +456,7 @@ async def seed_user(user_def: dict, clean: bool = False, bills_only: bool = Fals
             hourly_energy=float(enriched.get("hourlyEnergy", 0.0)),
             is_smart=bool(enriched.get("isSmart", False)),
             run_duration_minutes=int(enriched.get("runDurationMinutes", 60)),
-            location_id=home_location_id,
+            location_id=dev_location,
         )
         if row:
             created_devices.append(dict(row))
@@ -458,6 +483,27 @@ async def seed_user(user_def: dict, clean: bool = False, bills_only: bool = Fals
         if row:
             log.info("  Created bill: %d/%d $%.2f (%s kWh)",
                      bill["month"], bill["year"], bill["total"], usage_kwh if usage_kwh is not None else "—")
+
+    # --- Bills for second location (e.g. Cabin) ---
+    second_location_bills = user_def.get("bills_second_location", [])
+    second_loc_name = next((loc["name"] for loc in user_def["locations"] if loc["name"] != "Home"), None)
+    second_location_id = location_ids.get(second_loc_name) if second_loc_name else None
+    if second_location_id and second_location_bills:
+        for bill in second_location_bills:
+            kwh = bill.get("kwh")
+            usage_kwh = int(kwh) if kwh is not None else None
+            row = await db_create_bill(
+                user_id=user_id,
+                month=bill["month"],
+                year=bill["year"],
+                bill_total=bill["total"],
+                usage_kwh=usage_kwh,
+                utility=bill.get("utility"),
+                location_id=second_location_id,
+            )
+            if row:
+                log.info("  Created bill (%s): %d/%d $%.2f (%s kWh)",
+                         second_loc_name, bill["month"], bill["year"], bill["total"], usage_kwh if usage_kwh is not None else "—")
 
     # --- Preferences ---
     prefs = user_def["preferences"]
