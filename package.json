@@ -1,5 +1,5 @@
 {
-  "name": "henhacks2026",
+  "name": "phaseplan",
   "private": true,
   "scripts": {
     "dev": "npm run dev --prefix frontend",
