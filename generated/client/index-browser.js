@@ -141,6 +141,8 @@ exports.Prisma.DeviceScalarFieldEnum = {
   brand: 'brand',
   model: 'model',
   hourlyEnergy: 'hourlyEnergy',
+  standbyEnergy: 'standbyEnergy',
+  activeEnergy: 'activeEnergy',
   isSmart: 'isSmart',
   runDurationMinutes: 'runDurationMinutes'
 };

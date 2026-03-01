@@ -13,19 +13,22 @@ export async function getStatus() {
   return res.json();
 }
 
-/** List devices for the current user. Requires accessToken. */
+/** List devices for the current user. Requires accessToken. Throws with isUnauthorized: true on 401. */
 export async function getDevices(accessToken) {
   const res = await fetch(`${API_BASE}/api/devices`, {
     headers: authHeaders(accessToken),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "Failed to load devices");
+    const message = err.detail || "Failed to load devices";
+    const e = new Error(message);
+    if (res.status === 401) e.isUnauthorized = true;
+    throw e;
   }
   return res.json();
 }
 
-/** Create a device. Requires accessToken. */
+/** Create a device. Requires accessToken. Throws with isUnauthorized: true on 401. */
 export async function createDevice(accessToken, data) {
   const res = await fetch(`${API_BASE}/api/devices`, {
     method: "POST",
@@ -34,12 +37,14 @@ export async function createDevice(accessToken, data) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "Failed to create device");
+    const e = new Error(err.detail || "Failed to create device");
+    if (res.status === 401) e.isUnauthorized = true;
+    throw e;
   }
   return res.json();
 }
 
-/** Update a device. Requires accessToken. */
+/** Update a device. Requires accessToken. Throws with isUnauthorized: true on 401. */
 export async function updateDevice(accessToken, deviceId, data) {
   const res = await fetch(`${API_BASE}/api/devices/${encodeURIComponent(deviceId)}`, {
     method: "PUT",
@@ -48,12 +53,14 @@ export async function updateDevice(accessToken, deviceId, data) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "Failed to update device");
+    const e = new Error(err.detail || "Failed to update device");
+    if (res.status === 401) e.isUnauthorized = true;
+    throw e;
   }
   return res.json();
 }
 
-/** Delete a device. Requires accessToken. */
+/** Delete a device. Requires accessToken. Throws with isUnauthorized: true on 401. */
 export async function deleteDevice(accessToken, deviceId) {
   const res = await fetch(`${API_BASE}/api/devices/${encodeURIComponent(deviceId)}`, {
     method: "DELETE",
@@ -61,7 +68,9 @@ export async function deleteDevice(accessToken, deviceId) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "Failed to delete device");
+    const e = new Error(err.detail || "Failed to delete device");
+    if (res.status === 401) e.isUnauthorized = true;
+    throw e;
   }
   return res.json();
 }

@@ -3328,11 +3328,15 @@ export namespace Prisma {
 
   export type DeviceAvgAggregateOutputType = {
     hourlyEnergy: number | null
+    standbyEnergy: number | null
+    activeEnergy: number | null
     runDurationMinutes: number | null
   }
 
   export type DeviceSumAggregateOutputType = {
     hourlyEnergy: number | null
+    standbyEnergy: number | null
+    activeEnergy: number | null
     runDurationMinutes: number | null
   }
 
@@ -3344,6 +3348,8 @@ export namespace Prisma {
     brand: string | null
     model: string | null
     hourlyEnergy: number | null
+    standbyEnergy: number | null
+    activeEnergy: number | null
     isSmart: boolean | null
     runDurationMinutes: number | null
   }
@@ -3356,6 +3362,8 @@ export namespace Prisma {
     brand: string | null
     model: string | null
     hourlyEnergy: number | null
+    standbyEnergy: number | null
+    activeEnergy: number | null
     isSmart: boolean | null
     runDurationMinutes: number | null
   }
@@ -3368,6 +3376,8 @@ export namespace Prisma {
     brand: number
     model: number
     hourlyEnergy: number
+    standbyEnergy: number
+    activeEnergy: number
     isSmart: number
     runDurationMinutes: number
     _all: number
@@ -3376,11 +3386,15 @@ export namespace Prisma {
 
   export type DeviceAvgAggregateInputType = {
     hourlyEnergy?: true
+    standbyEnergy?: true
+    activeEnergy?: true
     runDurationMinutes?: true
   }
 
   export type DeviceSumAggregateInputType = {
     hourlyEnergy?: true
+    standbyEnergy?: true
+    activeEnergy?: true
     runDurationMinutes?: true
   }
 
@@ -3392,6 +3406,8 @@ export namespace Prisma {
     brand?: true
     model?: true
     hourlyEnergy?: true
+    standbyEnergy?: true
+    activeEnergy?: true
     isSmart?: true
     runDurationMinutes?: true
   }
@@ -3404,6 +3420,8 @@ export namespace Prisma {
     brand?: true
     model?: true
     hourlyEnergy?: true
+    standbyEnergy?: true
+    activeEnergy?: true
     isSmart?: true
     runDurationMinutes?: true
   }
@@ -3416,6 +3434,8 @@ export namespace Prisma {
     brand?: true
     model?: true
     hourlyEnergy?: true
+    standbyEnergy?: true
+    activeEnergy?: true
     isSmart?: true
     runDurationMinutes?: true
     _all?: true
@@ -3515,6 +3535,8 @@ export namespace Prisma {
     brand: string | null
     model: string | null
     hourlyEnergy: number | null
+    standbyEnergy: number | null
+    activeEnergy: number | null
     isSmart: boolean
     runDurationMinutes: number | null
     _count: DeviceCountAggregateOutputType | null
@@ -3546,6 +3568,8 @@ export namespace Prisma {
     brand?: boolean
     model?: boolean
     hourlyEnergy?: boolean
+    standbyEnergy?: boolean
+    activeEnergy?: boolean
     isSmart?: boolean
     runDurationMinutes?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3559,6 +3583,8 @@ export namespace Prisma {
     brand?: boolean
     model?: boolean
     hourlyEnergy?: boolean
+    standbyEnergy?: boolean
+    activeEnergy?: boolean
     isSmart?: boolean
     runDurationMinutes?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3572,6 +3598,8 @@ export namespace Prisma {
     brand?: boolean
     model?: boolean
     hourlyEnergy?: boolean
+    standbyEnergy?: boolean
+    activeEnergy?: boolean
     isSmart?: boolean
     runDurationMinutes?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3585,11 +3613,13 @@ export namespace Prisma {
     brand?: boolean
     model?: boolean
     hourlyEnergy?: boolean
+    standbyEnergy?: boolean
+    activeEnergy?: boolean
     isSmart?: boolean
     runDurationMinutes?: boolean
   }
 
-  export type DeviceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "type" | "brand" | "model" | "hourlyEnergy" | "isSmart" | "runDurationMinutes", ExtArgs["result"]["device"]>
+  export type DeviceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "type" | "brand" | "model" | "hourlyEnergy" | "standbyEnergy" | "activeEnergy" | "isSmart" | "runDurationMinutes", ExtArgs["result"]["device"]>
   export type DeviceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -3613,6 +3643,8 @@ export namespace Prisma {
       brand: string | null
       model: string | null
       hourlyEnergy: number | null
+      standbyEnergy: number | null
+      activeEnergy: number | null
       isSmart: boolean
       runDurationMinutes: number | null
     }, ExtArgs["result"]["device"]>
@@ -4046,6 +4078,8 @@ export namespace Prisma {
     readonly brand: FieldRef<"Device", 'String'>
     readonly model: FieldRef<"Device", 'String'>
     readonly hourlyEnergy: FieldRef<"Device", 'Float'>
+    readonly standbyEnergy: FieldRef<"Device", 'Float'>
+    readonly activeEnergy: FieldRef<"Device", 'Float'>
     readonly isSmart: FieldRef<"Device", 'Boolean'>
     readonly runDurationMinutes: FieldRef<"Device", 'Int'>
   }
@@ -5581,6 +5615,8 @@ export namespace Prisma {
     brand: 'brand',
     model: 'model',
     hourlyEnergy: 'hourlyEnergy',
+    standbyEnergy: 'standbyEnergy',
+    activeEnergy: 'activeEnergy',
     isSmart: 'isSmart',
     runDurationMinutes: 'runDurationMinutes'
   };
@@ -5814,6 +5850,8 @@ export namespace Prisma {
     brand?: StringNullableFilter<"Device"> | string | null
     model?: StringNullableFilter<"Device"> | string | null
     hourlyEnergy?: FloatNullableFilter<"Device"> | number | null
+    standbyEnergy?: FloatNullableFilter<"Device"> | number | null
+    activeEnergy?: FloatNullableFilter<"Device"> | number | null
     isSmart?: BoolFilter<"Device"> | boolean
     runDurationMinutes?: IntNullableFilter<"Device"> | number | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -5827,6 +5865,8 @@ export namespace Prisma {
     brand?: SortOrderInput | SortOrder
     model?: SortOrderInput | SortOrder
     hourlyEnergy?: SortOrderInput | SortOrder
+    standbyEnergy?: SortOrderInput | SortOrder
+    activeEnergy?: SortOrderInput | SortOrder
     isSmart?: SortOrder
     runDurationMinutes?: SortOrderInput | SortOrder
     user?: UserOrderByWithRelationInput
@@ -5843,6 +5883,8 @@ export namespace Prisma {
     brand?: StringNullableFilter<"Device"> | string | null
     model?: StringNullableFilter<"Device"> | string | null
     hourlyEnergy?: FloatNullableFilter<"Device"> | number | null
+    standbyEnergy?: FloatNullableFilter<"Device"> | number | null
+    activeEnergy?: FloatNullableFilter<"Device"> | number | null
     isSmart?: BoolFilter<"Device"> | boolean
     runDurationMinutes?: IntNullableFilter<"Device"> | number | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -5856,6 +5898,8 @@ export namespace Prisma {
     brand?: SortOrderInput | SortOrder
     model?: SortOrderInput | SortOrder
     hourlyEnergy?: SortOrderInput | SortOrder
+    standbyEnergy?: SortOrderInput | SortOrder
+    activeEnergy?: SortOrderInput | SortOrder
     isSmart?: SortOrder
     runDurationMinutes?: SortOrderInput | SortOrder
     _count?: DeviceCountOrderByAggregateInput
@@ -5876,6 +5920,8 @@ export namespace Prisma {
     brand?: StringNullableWithAggregatesFilter<"Device"> | string | null
     model?: StringNullableWithAggregatesFilter<"Device"> | string | null
     hourlyEnergy?: FloatNullableWithAggregatesFilter<"Device"> | number | null
+    standbyEnergy?: FloatNullableWithAggregatesFilter<"Device"> | number | null
+    activeEnergy?: FloatNullableWithAggregatesFilter<"Device"> | number | null
     isSmart?: BoolWithAggregatesFilter<"Device"> | boolean
     runDurationMinutes?: IntNullableWithAggregatesFilter<"Device"> | number | null
   }
@@ -6034,6 +6080,8 @@ export namespace Prisma {
     brand?: string | null
     model?: string | null
     hourlyEnergy?: number | null
+    standbyEnergy?: number | null
+    activeEnergy?: number | null
     isSmart?: boolean
     runDurationMinutes?: number | null
     user: UserCreateNestedOneWithoutDevicesInput
@@ -6047,6 +6095,8 @@ export namespace Prisma {
     brand?: string | null
     model?: string | null
     hourlyEnergy?: number | null
+    standbyEnergy?: number | null
+    activeEnergy?: number | null
     isSmart?: boolean
     runDurationMinutes?: number | null
   }
@@ -6058,6 +6108,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
     user?: UserUpdateOneRequiredWithoutDevicesNestedInput
@@ -6071,6 +6123,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -6083,6 +6137,8 @@ export namespace Prisma {
     brand?: string | null
     model?: string | null
     hourlyEnergy?: number | null
+    standbyEnergy?: number | null
+    activeEnergy?: number | null
     isSmart?: boolean
     runDurationMinutes?: number | null
   }
@@ -6094,6 +6150,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -6106,6 +6164,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -6335,12 +6395,16 @@ export namespace Prisma {
     brand?: SortOrder
     model?: SortOrder
     hourlyEnergy?: SortOrder
+    standbyEnergy?: SortOrder
+    activeEnergy?: SortOrder
     isSmart?: SortOrder
     runDurationMinutes?: SortOrder
   }
 
   export type DeviceAvgOrderByAggregateInput = {
     hourlyEnergy?: SortOrder
+    standbyEnergy?: SortOrder
+    activeEnergy?: SortOrder
     runDurationMinutes?: SortOrder
   }
 
@@ -6352,6 +6416,8 @@ export namespace Prisma {
     brand?: SortOrder
     model?: SortOrder
     hourlyEnergy?: SortOrder
+    standbyEnergy?: SortOrder
+    activeEnergy?: SortOrder
     isSmart?: SortOrder
     runDurationMinutes?: SortOrder
   }
@@ -6364,12 +6430,16 @@ export namespace Prisma {
     brand?: SortOrder
     model?: SortOrder
     hourlyEnergy?: SortOrder
+    standbyEnergy?: SortOrder
+    activeEnergy?: SortOrder
     isSmart?: SortOrder
     runDurationMinutes?: SortOrder
   }
 
   export type DeviceSumOrderByAggregateInput = {
     hourlyEnergy?: SortOrder
+    standbyEnergy?: SortOrder
+    activeEnergy?: SortOrder
     runDurationMinutes?: SortOrder
   }
 
@@ -6943,6 +7013,8 @@ export namespace Prisma {
     brand?: string | null
     model?: string | null
     hourlyEnergy?: number | null
+    standbyEnergy?: number | null
+    activeEnergy?: number | null
     isSmart?: boolean
     runDurationMinutes?: number | null
   }
@@ -6954,6 +7026,8 @@ export namespace Prisma {
     brand?: string | null
     model?: string | null
     hourlyEnergy?: number | null
+    standbyEnergy?: number | null
+    activeEnergy?: number | null
     isSmart?: boolean
     runDurationMinutes?: number | null
   }
@@ -7046,6 +7120,8 @@ export namespace Prisma {
     brand?: StringNullableFilter<"Device"> | string | null
     model?: StringNullableFilter<"Device"> | string | null
     hourlyEnergy?: FloatNullableFilter<"Device"> | number | null
+    standbyEnergy?: FloatNullableFilter<"Device"> | number | null
+    activeEnergy?: FloatNullableFilter<"Device"> | number | null
     isSmart?: BoolFilter<"Device"> | boolean
     runDurationMinutes?: IntNullableFilter<"Device"> | number | null
   }
@@ -7212,6 +7288,8 @@ export namespace Prisma {
     brand?: string | null
     model?: string | null
     hourlyEnergy?: number | null
+    standbyEnergy?: number | null
+    activeEnergy?: number | null
     isSmart?: boolean
     runDurationMinutes?: number | null
   }
@@ -7256,6 +7334,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -7267,6 +7347,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
   }
@@ -7278,6 +7360,8 @@ export namespace Prisma {
     brand?: NullableStringFieldUpdateOperationsInput | string | null
     model?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    standbyEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
+    activeEnergy?: NullableFloatFieldUpdateOperationsInput | number | null
     isSmart?: BoolFieldUpdateOperationsInput | boolean
     runDurationMinutes?: NullableIntFieldUpdateOperationsInput | number | null
   }

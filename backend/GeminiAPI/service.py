@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai.types import GenerateContentConfig, GoogleSearch, Tool
 
-load_dotenv()  # loads .env
+load_dotenv()
 
 
 class GeminiService:
@@ -12,47 +12,7 @@ class GeminiService:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY not set")
-
-        # Initialize client with API key
         self.client = genai.Client(api_key=api_key)
-
-    async def generate_rate_from_device(self, formData: dict) -> float:
-        prompt = f"""
-You are a helpful assistant that generates a rate from a device.
-The form data is: {json.dumps(formData)}
-
-formData contains the following fields:
-- device_name: {formData.get("device_name")} The name of the device (e.g. "Smart Thermostat")
-- device_brand: {formData.get("device_brand")} The brand of the device (e.g. "Nest")
-- device_model: {formData.get("device_model")} The model of the device (e.g. "Nest Thermostat")
-
-Generate
-- hourlyEnergy: {formData.get("hourlyEnergy")} The hourly energy consumption in kWh (e.g. 1.5)
-- isSmart: {formData.get("isSmart")} Whether the device is smart (e.g. true)
-- type: {formData.get("type")} The type of the device (e.g. "thermostat", "tv", "washer", "dryer", "refrigerator", "freezer", "oven", "microwave", "toaster", "coffee maker", "other")
-
-Return ONLY a JSON object with the following fields:
-- hourlyEnergy: {formData.get("hourlyEnergy")} The hourly energy consumption in kWh (e.g. 1.5)
-- isSmart: {formData.get("isSmart")} Whether the device is smart (e.g. true)
-- type: {formData.get("type")} The type of the device (e.g. "thermostat")
-
-"""
-        try:
-            response = self.client.models.generate_content(
-                model="gemini-3-flash-preview", contents=prompt
-            )
-
-            text = response.text
-            if not text:
-                raise RuntimeError("Gemini returned empty response")
-
-            return float(text.strip())
-
-        except ValueError:
-            raise ValueError(f"Gemini returned non-numeric response: {text}")
-
-        except Exception as e:
-            raise RuntimeError(f"Failed to generate rate: {e}")
 
     def enrich_device(self, name: str, brand: str, model: str) -> dict:
         """
@@ -77,7 +37,7 @@ Return only valid JSON, no code block or explanation."""
 
         try:
             response = self.client.models.generate_content(
-                model="gemini-3-flash-preview",
+                model="gemini-2.5-flash",
                 contents=prompt,
                 config=GenerateContentConfig(
                     tools=[Tool(google_search=GoogleSearch())]
@@ -102,9 +62,7 @@ Return only valid JSON, no code block or explanation."""
                 "type": str(data.get("type", "Other")).strip() or "Other",
                 "hourlyEnergy": float(hourly) if hourly is not None else 0.0,
                 "isSmart": bool(data.get("isSmart", False)),
-                "runDurationMinutes": int(data.get("runDurationMinutes", 60))
-                if data.get("runDurationMinutes") is not None
-                else 60,
+                "runDurationMinutes": int(data.get("runDurationMinutes", 60)) if data.get("runDurationMinutes") is not None else 60,
             }
         except json.JSONDecodeError as e:
             raise ValueError(f"Gemini returned invalid JSON: {e}")
