@@ -14,39 +14,19 @@ import KitchenRoundedIcon from '@mui/icons-material/KitchenRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import DevicesOtherRoundedIcon from '@mui/icons-material/DevicesOtherRounded';
 
-const data = [
-  { label: 'HVAC', value: 420 },
-  { label: 'Appliances', value: 230 },
-  { label: 'Lighting', value: 110 },
-  { label: 'Other', value: 82 },
-];
+const TYPE_ICONS = {
+  HVAC: <AcUnitRoundedIcon sx={{ fontSize: '1rem' }} />,
+  Appliances: <KitchenRoundedIcon sx={{ fontSize: '1rem' }} />,
+  Lighting: <LightbulbRoundedIcon sx={{ fontSize: '1rem' }} />,
+  Other: <DevicesOtherRoundedIcon sx={{ fontSize: '1rem' }} />,
+};
 
-const categories = [
-  {
-    name: 'HVAC',
-    value: 50,
-    icon: <AcUnitRoundedIcon sx={{ fontSize: '1rem' }} />,
-    color: 'hsl(220, 25%, 65%)',
-  },
-  {
-    name: 'Appliances',
-    value: 27,
-    icon: <KitchenRoundedIcon sx={{ fontSize: '1rem' }} />,
-    color: 'hsl(220, 25%, 45%)',
-  },
-  {
-    name: 'Lighting',
-    value: 13,
-    icon: <LightbulbRoundedIcon sx={{ fontSize: '1rem' }} />,
-    color: 'hsl(220, 25%, 30%)',
-  },
-  {
-    name: 'Other',
-    value: 10,
-    icon: <DevicesOtherRoundedIcon sx={{ fontSize: '1rem' }} />,
-    color: 'hsl(220, 25%, 20%)',
-  },
-];
+const TYPE_COLORS = {
+  HVAC: 'hsl(220, 25%, 65%)',
+  Appliances: 'hsl(220, 25%, 45%)',
+  Lighting: 'hsl(220, 25%, 30%)',
+  Other: 'hsl(220, 25%, 20%)',
+};
 
 const StyledText = styled('text', {
   shouldForwardProp: (prop) => prop !== 'variant',
@@ -94,14 +74,9 @@ PieCenterLabel.propTypes = {
   secondaryText: PropTypes.string.isRequired,
 };
 
-const colors = [
-  'hsl(220, 20%, 65%)',
-  'hsl(220, 20%, 42%)',
-  'hsl(220, 20%, 35%)',
-  'hsl(220, 20%, 25%)',
-];
+export default function ChartUserByCountry({ data = [], categories = [], totalEnergy = 0 }) {
+  const colors = data.map((d) => TYPE_COLORS[d.label] || 'hsl(220, 25%, 50%)');
 
-export default function ChartUserByCountry() {
   return (
     <Card
       variant="outlined"
@@ -111,63 +86,90 @@ export default function ChartUserByCountry() {
         <Typography component="h2" variant="subtitle2">
           Usage by Device Type
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <PieChart
-            colors={colors}
-            margin={{ left: 80, right: 80, top: 80, bottom: 80 }}
-            series={[
-              {
-                data,
-                innerRadius: 75,
-                outerRadius: 100,
-                paddingAngle: 0,
-                highlightScope: { fade: 'global', highlight: 'item' },
-              },
-            ]}
-            height={260}
-            width={260}
-            hideLegend
-          >
-            <PieCenterLabel primaryText="842" secondaryText="kWh" />
-          </PieChart>
-        </Box>
-        {categories.map((category, index) => (
-          <Stack
-            key={index}
-            direction="row"
-            sx={{ alignItems: 'center', gap: 2, pb: 2 }}
-          >
-            {category.icon}
-            <Stack sx={{ gap: 1, flexGrow: 1 }}>
-              <Stack
-                direction="row"
-                sx={{
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 2,
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: '500' }}>
-                  {category.name}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {category.value}%
-                </Typography>
-              </Stack>
-              <LinearProgress
-                variant="determinate"
-                aria-label="Energy usage by device type"
-                value={category.value}
-                sx={{
-                  [`& .${linearProgressClasses.bar}`]: {
-                    backgroundColor: category.color,
+        {data.length > 0 ? (
+          <>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <PieChart
+                colors={colors}
+                margin={{ left: 80, right: 80, top: 80, bottom: 80 }}
+                series={[
+                  {
+                    data,
+                    innerRadius: 75,
+                    outerRadius: 100,
+                    paddingAngle: 0,
+                    highlightScope: { fade: 'global', highlight: 'item' },
                   },
-                }}
-              />
-            </Stack>
-          </Stack>
-        ))}
+                ]}
+                height={260}
+                width={260}
+                hideLegend
+              >
+                <PieCenterLabel
+                  primaryText={totalEnergy.toLocaleString()}
+                  secondaryText="kWh"
+                />
+              </PieChart>
+            </Box>
+            {categories.map((category, index) => (
+              <Stack
+                key={index}
+                direction="row"
+                sx={{ alignItems: 'center', gap: 2, pb: 2 }}
+              >
+                {TYPE_ICONS[category.name] || TYPE_ICONS.Other}
+                <Stack sx={{ gap: 1, flexGrow: 1 }}>
+                  <Stack
+                    direction="row"
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: '500' }}>
+                      {category.name}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {category.value}%
+                    </Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    aria-label="Energy usage by device type"
+                    value={category.value}
+                    sx={{
+                      [`& .${linearProgressClasses.bar}`]: {
+                        backgroundColor: TYPE_COLORS[category.name] || TYPE_COLORS.Other,
+                      },
+                    }}
+                  />
+                </Stack>
+              </Stack>
+            ))}
+          </>
+        ) : (
+          <Typography sx={{ color: 'text.secondary', py: 8, textAlign: 'center' }}>
+            Add devices to see usage breakdown
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );
 }
+
+ChartUserByCountry.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.number,
+    }),
+  ),
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+      value: PropTypes.number,
+    }),
+  ),
+  totalEnergy: PropTypes.number,
+};

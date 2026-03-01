@@ -131,7 +131,8 @@ exports.Prisma.UserScalarFieldEnum = {
 exports.Prisma.LocationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  zip: 'zip'
+  zip: 'zip',
+  name: 'name'
 };
 
 exports.Prisma.DeviceScalarFieldEnum = {
@@ -145,7 +146,8 @@ exports.Prisma.DeviceScalarFieldEnum = {
   isSmart: 'isSmart',
   runDurationMinutes: 'runDurationMinutes',
   activeEnergy: 'activeEnergy',
-  standbyEnergy: 'standbyEnergy'
+  standbyEnergy: 'standbyEnergy',
+  locationId: 'locationId'
 };
 
 exports.Prisma.BillHistoryScalarFieldEnum = {
@@ -188,14 +190,6 @@ exports.Prisma.HourlyRateScalarFieldEnum = {
   periodLabel: 'periodLabel'
 };
 
-exports.Prisma.User_preferencesScalarFieldEnum = {
-  preference_id: 'preference_id',
-  user_id: 'user_id',
-  weekly_schedule: 'weekly_schedule',
-  temp_awake: 'temp_awake',
-  temp_sleeping: 'temp_sleeping'
-};
-
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -233,8 +227,8 @@ exports.Prisma.ModelName = {
   Device: 'Device',
   BillHistory: 'BillHistory',
   UtilityProvider: 'UtilityProvider',
-  HourlyRate: 'HourlyRate',
-  user_preferences: 'user_preferences'
+  UserPreferences: 'UserPreferences',
+  HourlyRate: 'HourlyRate'
 };
 
 /**

@@ -9,44 +9,49 @@ datasource db {
 }
 
 model User {
-  id                 String            @id
-  email              String            @unique
-  utilityProv        String?           @map("utility_prov")
-  selectedProviderId String?           @map("selected_provider_id")
+  id                 String           @id
+  email              String           @unique
+  utilityProv        String?          @map("utility_prov")
+  selectedProviderId String?          @map("selected_provider_id")
   billHistory        BillHistory[]
   devices            Device[]
   locations          Location[]
-  user_preferences   user_preferences?
-  selectedProvider   UtilityProvider?  @relation(fields: [selectedProviderId], references: [id])
+  preferences        UserPreferences?
+  selectedProvider   UtilityProvider? @relation(fields: [selectedProviderId], references: [id])
 
   @@map("users")
 }
 
 model Location {
-  id     String @id @default(uuid()) @map("location_id")
-  userId String @map("user_id")
-  zip    String @map("zip")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id      String   @id @default(uuid()) @map("location_id")
+  userId  String   @map("user_id")
+  zip     String   @map("zip")
+  name    String   @default("Home")
+  devices Device[]
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("locations")
 }
 
 model Device {
-  id                 String  @id @default(uuid()) @map("device_id")
-  userId             String  @map("user_id")
+  id                 String    @id @default(uuid()) @map("device_id")
+  userId             String    @map("user_id")
   name               String
   type               String
   brand              String?
   model              String?
-  hourlyEnergy       Float?  @map("hourly_energy")
-  isSmart            Boolean @default(false) @map("is_smart")
-  runDurationMinutes Int?    @map("run_duration_minutes")
-  activeEnergy       Float?  @map("active_energy")
-  standbyEnergy      Float?  @map("standby_energy")
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hourlyEnergy       Float?    @map("hourly_energy")
+  isSmart            Boolean   @default(false) @map("is_smart")
+  runDurationMinutes Int?      @map("run_duration_minutes")
+  activeEnergy       Float?    @map("active_energy")
+  standbyEnergy      Float?    @map("standby_energy")
+  locationId         String?   @map("location_id")
+  location           Location? @relation(fields: [locationId], references: [id])
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([locationId])
   @@map("devices")
 }
 
@@ -106,14 +111,4 @@ model HourlyRate {
   @@unique([providerId, date, hour])
   @@index([providerId, date])
   @@map("hourly_rates")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model user_preferences {
-  preference_id   String @id
-  user_id         String @unique
-  weekly_schedule Json
-  temp_awake      Float
-  temp_sleeping   Float
-  users           User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }

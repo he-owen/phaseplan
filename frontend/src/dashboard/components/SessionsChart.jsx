@@ -23,28 +23,27 @@ AreaGradient.propTypes = {
   id: PropTypes.string.isRequired,
 };
 
-function getDaysInMonth(month, year) {
-  const date = new Date(year, month, 0);
-  const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-  const daysInMonth = date.getDate();
-  const days = [];
-  let i = 1;
-  while (days.length < daysInMonth) {
-    days.push(`${monthName} ${i}`);
-    i += 1;
-  }
-  return days;
-}
-
-export default function SessionsChart() {
+export default function SessionsChart({ data = {} }) {
   const theme = useTheme();
-  const data = getDaysInMonth(4, 2024);
-
   const colorPalette = [
     theme.palette.primary.light,
     theme.palette.primary.main,
     theme.palette.primary.dark,
   ];
+
+  const labels = data.labels || [];
+  const hvac = data.hvac || [];
+  const appliances = data.appliances || [];
+  const lighting = data.lighting || [];
+  const totalEnergy = data.totalMonthlyEnergy || 0;
+
+  const mid = Math.floor(labels.length / 2) || 1;
+  const sumSlice = (arr, start, end) => arr.slice(start, end).reduce((a, b) => a + b, 0);
+  const firstHalf = sumSlice(hvac, 0, mid) + sumSlice(appliances, 0, mid) + sumSlice(lighting, 0, mid) || 1;
+  const secondHalf = sumSlice(hvac, mid, labels.length) + sumSlice(appliances, mid, labels.length) + sumSlice(lighting, mid, labels.length) || 1;
+  const pctChange = Math.round(((secondHalf - firstHalf) / firstHalf) * 100);
+  const chipLabel = pctChange <= 0 ? `${pctChange}%` : `+${pctChange}%`;
+  const chipColor = pctChange <= 0 ? 'success' : 'error';
 
   return (
     <Card variant="outlined" sx={{ width: '100%' }}>
@@ -62,87 +61,100 @@ export default function SessionsChart() {
             }}
           >
             <Typography variant="h4" component="p">
-              842 kWh
+              {totalEnergy.toLocaleString()} kWh
             </Typography>
-            <Chip size="small" color="success" label="-12%" />
+            {labels.length > 0 && <Chip size="small" color={chipColor} label={chipLabel} />}
           </Stack>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Energy consumption by category for the last 30 days
+            Estimated energy consumption by category this month
           </Typography>
         </Stack>
-        <LineChart
-          colors={colorPalette}
-          xAxis={[
-            {
-              scaleType: 'point',
-              data,
-              tickInterval: (index, i) => (i + 1) % 5 === 0,
-              height: 24,
-            },
-          ]}
-          yAxis={[{ width: 50 }]}
-          series={[
-            {
-              id: 'hvac',
-              label: 'HVAC',
-              showMark: false,
-              curve: 'linear',
-              stack: 'total',
-              area: true,
-              stackOrder: 'ascending',
-              data: [
-                12, 14, 11, 15, 13, 10, 14, 12, 9, 13, 11, 8, 12, 10, 7, 11,
-                9, 6, 10, 8, 5, 9, 7, 4, 8, 6, 5, 7, 6, 8,
-              ],
-            },
-            {
-              id: 'appliances',
-              label: 'Appliances',
-              showMark: false,
-              curve: 'linear',
-              stack: 'total',
-              area: true,
-              stackOrder: 'ascending',
-              data: [
-                8, 7, 9, 8, 7, 9, 8, 7, 9, 8, 7, 9, 8, 7, 9, 8, 7, 9, 8, 7,
-                9, 8, 7, 9, 8, 7, 9, 8, 7, 9,
-              ],
-            },
-            {
-              id: 'lighting',
-              label: 'Lighting & Other',
-              showMark: false,
-              curve: 'linear',
-              stack: 'total',
-              stackOrder: 'ascending',
-              area: true,
-              data: [
-                3, 3, 4, 3, 3, 4, 3, 3, 4, 3, 3, 4, 3, 3, 4, 3, 3, 4, 3, 3,
-                4, 3, 3, 4, 3, 3, 4, 3, 3, 4,
-              ],
-            },
-          ]}
-          height={250}
-          margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
-          grid={{ horizontal: true }}
-          sx={{
-            '& .MuiAreaElement-series-hvac': {
-              fill: "url('#home-hvac')",
-            },
-            '& .MuiAreaElement-series-appliances': {
-              fill: "url('#home-appliances')",
-            },
-            '& .MuiAreaElement-series-lighting': {
-              fill: "url('#home-lighting')",
-            },
-          }}
-          hideLegend
-        >
-          <AreaGradient color={theme.palette.primary.dark} id="home-hvac" />
-          <AreaGradient color={theme.palette.primary.main} id="home-appliances" />
-          <AreaGradient color={theme.palette.primary.light} id="home-lighting" />
-        </LineChart>
+        {labels.length > 0 ? (
+          <LineChart
+            colors={colorPalette}
+            xAxis={[
+              {
+                scaleType: 'point',
+                data: labels,
+                tickInterval: (index, i) => (i + 1) % 5 === 0,
+                height: 24,
+              },
+            ]}
+            yAxis={[{
+              width: 50,
+              valueFormatter: (v) => `${v} kWh`,
+            }]}
+            series={[
+              {
+                id: 'hvac',
+                label: 'HVAC',
+                showMark: false,
+                curve: 'linear',
+                stack: 'total',
+                area: true,
+                stackOrder: 'ascending',
+                data: hvac,
+                valueFormatter: (v) => `${v} kWh`,
+              },
+              {
+                id: 'appliances',
+                label: 'Appliances',
+                showMark: false,
+                curve: 'linear',
+                stack: 'total',
+                area: true,
+                stackOrder: 'ascending',
+                data: appliances,
+                valueFormatter: (v) => `${v} kWh`,
+              },
+              {
+                id: 'lighting',
+                label: 'Lighting & Other',
+                showMark: false,
+                curve: 'linear',
+                stack: 'total',
+                stackOrder: 'ascending',
+                area: true,
+                data: lighting,
+                valueFormatter: (v) => `${v} kWh`,
+              },
+            ]}
+            height={250}
+            margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+            grid={{ horizontal: true }}
+            sx={{
+              '& .MuiAreaElement-series-hvac': {
+                fill: "url('#home-hvac')",
+              },
+              '& .MuiAreaElement-series-appliances': {
+                fill: "url('#home-appliances')",
+              },
+              '& .MuiAreaElement-series-lighting': {
+                fill: "url('#home-lighting')",
+              },
+            }}
+            hideLegend
+          >
+            <AreaGradient color={theme.palette.primary.dark} id="home-hvac" />
+            <AreaGradient color={theme.palette.primary.main} id="home-appliances" />
+            <AreaGradient color={theme.palette.primary.light} id="home-lighting" />
+          </LineChart>
+        ) : (
+          <Typography sx={{ color: 'text.secondary', py: 8, textAlign: 'center' }}>
+            Add devices to see your energy usage estimates
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );
 }
+
+SessionsChart.propTypes = {
+  data: PropTypes.shape({
+    labels: PropTypes.arrayOf(PropTypes.string),
+    hvac: PropTypes.arrayOf(PropTypes.number),
+    appliances: PropTypes.arrayOf(PropTypes.number),
+    lighting: PropTypes.arrayOf(PropTypes.number),
+    totalMonthlyEnergy: PropTypes.number,
+  }),
+};

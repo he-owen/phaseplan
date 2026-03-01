@@ -23,30 +23,35 @@ model User {
 }
 
 model Location {
-  id     String @id @default(uuid()) @map("location_id")
-  userId String @map("user_id")
-  zip    String @map("zip")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id      String   @id @default(uuid()) @map("location_id")
+  userId  String   @map("user_id")
+  zip     String   @map("zip")
+  name    String   @default("Home")
+  devices Device[]
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("locations")
 }
 
 model Device {
-  id                 String  @id @default(uuid()) @map("device_id")
-  userId             String  @map("user_id")
+  id                 String    @id @default(uuid()) @map("device_id")
+  userId             String    @map("user_id")
   name               String
   type               String
   brand              String?
   model              String?
-  hourlyEnergy       Float?  @map("hourly_energy")
-  isSmart            Boolean @default(false) @map("is_smart")
-  runDurationMinutes Int?    @map("run_duration_minutes")
-  activeEnergy       Float?  @map("active_energy")
-  standbyEnergy      Float?  @map("standby_energy")
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hourlyEnergy       Float?    @map("hourly_energy")
+  isSmart            Boolean   @default(false) @map("is_smart")
+  runDurationMinutes Int?      @map("run_duration_minutes")
+  activeEnergy       Float?    @map("active_energy")
+  standbyEnergy      Float?    @map("standby_energy")
+  locationId         String?   @map("location_id")
+  location           Location? @relation(fields: [locationId], references: [id])
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([locationId])
   @@map("devices")
 }
 

@@ -16,7 +16,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useAuth0 } from '@auth0/auth0-react';
 import Copyright from '../internals/components/Copyright';
 import DeviceFormDialog from './DeviceFormDialog';
-import { getDevices, createDevice, updateDevice, deleteDevice } from '../../api';
+import { getDevices, createDevice, updateDevice, deleteDevice, getLocations } from '../../api';
 
 const PENDING_SPINNER = (
   <Box
@@ -80,6 +80,7 @@ const SESSION_EXPIRED_MESSAGE = 'Session expired or invalid. Please sign in agai
 export default function DevicesPage() {
   const { getAccessTokenSilently, isAuthenticated, loginWithRedirect } = useAuth0();
   const [devices, setDevices] = React.useState([]);
+  const [locations, setLocations] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -101,8 +102,9 @@ export default function DevicesPage() {
     setError(null);
     try {
       const token = await getAccessTokenSilently();
-      const list = await getDevices(token);
+      const [list, locs] = await Promise.all([getDevices(token), getLocations(token)]);
       setDevices(list);
+      setLocations(locs);
     } catch (e) {
       setError(e?.isUnauthorized ? SESSION_EXPIRED_MESSAGE : (e?.message ?? 'Failed to load devices'));
       setDevices([]);
@@ -147,6 +149,8 @@ export default function DevicesPage() {
       try {
         const token = await getAccessTokenSilently();
         const updated = await updateDevice(token, editingDevice.id, formData);
+        const updatedLoc = locations.find((l) => l.id === updated.locationId);
+        updated.locationName = updatedLoc?.name || null;
         setDevices((prev) =>
           prev.map((d) => (d.id === editingDevice.id ? updated : d)),
         );
@@ -161,11 +165,14 @@ export default function DevicesPage() {
 
     // New device: show optimistic row immediately (flush so it paints), then create in background
     const pendingId = `pending-${Date.now()}`;
+    const matchedLoc = locations.find((l) => l.id === formData.locationId);
     const optimisticRow = {
       id: pendingId,
       name: formData.name,
       brand: formData.brand,
       model: formData.model,
+      locationId: formData.locationId || null,
+      locationName: matchedLoc?.name || null,
       type: '',
       hourlyEnergy: 0,
       isSmart: false,
@@ -182,6 +189,7 @@ export default function DevicesPage() {
     try {
       const token = await getAccessTokenSilently();
       const created = await createDevice(token, formData);
+      created.locationName = matchedLoc?.name || null;
       setDevices((prev) =>
         prev.map((d) => (d.id === pendingId ? created : d)),
       );
@@ -201,6 +209,18 @@ export default function DevicesPage() {
       minWidth: 160,
       headerAlign: 'center',
       align: 'center',
+    },
+    {
+      field: 'locationName',
+      headerName: 'Location',
+      flex: 0.8,
+      minWidth: 100,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: (params) => {
+        if (params.row._pending) return <Box sx={PENDING_CELL_WRAPPER_SX}>{PENDING_SPINNER}</Box>;
+        return params.value || '—';
+      },
     },
     {
       field: 'type',
@@ -392,6 +412,7 @@ export default function DevicesPage() {
         onSave={handleSave}
         device={editingDevice}
         saving={saving}
+        locations={locations}
       />
       <Copyright sx={{ my: 4 }} />
     </Box>

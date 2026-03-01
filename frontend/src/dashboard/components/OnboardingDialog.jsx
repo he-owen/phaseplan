@@ -30,6 +30,7 @@ import {
   setUserProvider,
   generateMonthlyRates,
   saveUserPreferences,
+  createLocation,
 } from '../../api';
 
 const STEPS = ['Enter your zip code', 'Select your utility provider', 'Set your preferences'];
@@ -102,12 +103,12 @@ export default function OnboardingDialog({ open, onComplete }) {
     setError(null);
     try {
       const token = await getAccessTokenSilently();
+      await createLocation(token, { name: 'Home', zip: zipCode.trim() });
       await setUserProvider(token, selectedProvider);
       const now = new Date();
       try {
         await generateMonthlyRates(token, selectedProvider, now.getMonth() + 1, now.getFullYear());
       } catch (rateErr) {
-        // Rate generation can fail (e.g. provider not found); still complete setup
         console.warn('Rate generation skipped:', rateErr?.message);
       }
       await saveUserPreferences(token, {
