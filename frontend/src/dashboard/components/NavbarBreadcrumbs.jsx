@@ -23,7 +23,7 @@ export default function NavbarBreadcrumbs() {
       aria-label="breadcrumb"
       separator={<NavigateNextRoundedIcon fontSize="small" />}
     >
-      <Typography variant="body1">Energy Manager</Typography>
+      <Typography variant="body1">PhasePlan</Typography>
       <Typography variant="body1" sx={{ color: 'text.primary', fontWeight: 600 }}>
         {currentPage}
       </Typography>

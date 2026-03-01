@@ -29,6 +29,10 @@ const PageContext = React.createContext({
   setSavingsSummary: () => {},
   pendingSchedules: [],
   setPendingSchedules: () => {},
+  notificationsOpen: false,
+  setNotificationsOpen: () => {},
+  notificationCount: null,
+  setNotificationCount: () => {},
 });
 
 export function PageProvider({ children }) {
@@ -40,6 +44,8 @@ export function PageProvider({ children }) {
   const [todaySchedule, setTodaySchedule] = React.useState(null);
   const [savingsSummary, setSavingsSummary] = React.useState(null);
   const [pendingSchedules, setPendingSchedules] = React.useState([]);
+  const [notificationsOpen, setNotificationsOpen] = React.useState(false);
+  const [notificationCount, setNotificationCount] = React.useState(null);
 
   const currentPage = PATH_TO_PAGE[location.pathname] || 'Home';
 
@@ -67,9 +73,13 @@ export function PageProvider({ children }) {
       setSavingsSummary,
       pendingSchedules,
       setPendingSchedules,
+      notificationsOpen,
+      setNotificationsOpen,
+      notificationCount,
+      setNotificationCount,
     }),
     [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults, searchHighlight,
-     todaySchedule, savingsSummary, pendingSchedules],
+     todaySchedule, savingsSummary, pendingSchedules, notificationsOpen, notificationCount],
   );
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;

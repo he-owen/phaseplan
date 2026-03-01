@@ -24,7 +24,7 @@ PORT = int(os.getenv("PORT", "8000"))
 _REQUIRED_ORIGINS = {
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://henhacks2026.vercel.app",
+    "https://phaseplan.vercel.app",
 }
 CORS_ORIGINS = list(
     _REQUIRED_ORIGINS

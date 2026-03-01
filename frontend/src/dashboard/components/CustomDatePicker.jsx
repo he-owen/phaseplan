@@ -29,7 +29,7 @@ function ButtonField(props) {
       ref={handleRef}
       size="small"
       startIcon={<CalendarTodayRoundedIcon fontSize="small" />}
-      sx={{ minWidth: 'fit-content' }}
+      sx={{ minWidth: 'fit-content', pointerEvents: 'none', cursor: 'default' }}
       onClick={() => pickerContext.setOpen((prev) => !prev)}
     >
       {pickerContext.label ?? valueStr}
@@ -38,7 +38,7 @@ function ButtonField(props) {
 }
 
 export default function CustomDatePicker() {
-  const [value, setValue] = React.useState(dayjs('2023-04-17'));
+  const [value, setValue] = React.useState(dayjs());
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>

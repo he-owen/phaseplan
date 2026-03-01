@@ -1,4 +1,4 @@
-# henhacks2026
+# PhasePlan
 
 ## Production database (Render / Supabase)
 
