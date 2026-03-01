@@ -48,6 +48,11 @@ export type UserPreferences = $Result.DefaultSelection<Prisma.$UserPreferencesPa
  * 
  */
 export type HourlyRate = $Result.DefaultSelection<Prisma.$HourlyRatePayload>
+/**
+ * Model SavedSchedule
+ * 
+ */
+export type SavedSchedule = $Result.DefaultSelection<Prisma.$SavedSchedulePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -236,6 +241,16 @@ export class PrismaClient<
     * ```
     */
   get hourlyRate(): Prisma.HourlyRateDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.savedSchedule`: Exposes CRUD operations for the **SavedSchedule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SavedSchedules
+    * const savedSchedules = await prisma.savedSchedule.findMany()
+    * ```
+    */
+  get savedSchedule(): Prisma.SavedScheduleDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -683,7 +698,8 @@ export namespace Prisma {
     BillHistory: 'BillHistory',
     UtilityProvider: 'UtilityProvider',
     UserPreferences: 'UserPreferences',
-    HourlyRate: 'HourlyRate'
+    HourlyRate: 'HourlyRate',
+    SavedSchedule: 'SavedSchedule'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -702,7 +718,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "location" | "device" | "billHistory" | "utilityProvider" | "userPreferences" | "hourlyRate"
+      modelProps: "user" | "location" | "device" | "billHistory" | "utilityProvider" | "userPreferences" | "hourlyRate" | "savedSchedule"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1224,6 +1240,80 @@ export namespace Prisma {
           }
         }
       }
+      SavedSchedule: {
+        payload: Prisma.$SavedSchedulePayload<ExtArgs>
+        fields: Prisma.SavedScheduleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SavedScheduleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SavedScheduleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>
+          }
+          findFirst: {
+            args: Prisma.SavedScheduleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SavedScheduleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>
+          }
+          findMany: {
+            args: Prisma.SavedScheduleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>[]
+          }
+          create: {
+            args: Prisma.SavedScheduleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>
+          }
+          createMany: {
+            args: Prisma.SavedScheduleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SavedScheduleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>[]
+          }
+          delete: {
+            args: Prisma.SavedScheduleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>
+          }
+          update: {
+            args: Prisma.SavedScheduleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>
+          }
+          deleteMany: {
+            args: Prisma.SavedScheduleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SavedScheduleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SavedScheduleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>[]
+          }
+          upsert: {
+            args: Prisma.SavedScheduleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavedSchedulePayload>
+          }
+          aggregate: {
+            args: Prisma.SavedScheduleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSavedSchedule>
+          }
+          groupBy: {
+            args: Prisma.SavedScheduleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SavedScheduleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SavedScheduleCountArgs<ExtArgs>
+            result: $Utils.Optional<SavedScheduleCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1327,6 +1417,7 @@ export namespace Prisma {
     utilityProvider?: UtilityProviderOmit
     userPreferences?: UserPreferencesOmit
     hourlyRate?: HourlyRateOmit
+    savedSchedule?: SavedScheduleOmit
   }
 
   /* Types for Logging */
@@ -1410,12 +1501,14 @@ export namespace Prisma {
     billHistory: number
     devices: number
     locations: number
+    savedSchedules: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     billHistory?: boolean | UserCountOutputTypeCountBillHistoryArgs
     devices?: boolean | UserCountOutputTypeCountDevicesArgs
     locations?: boolean | UserCountOutputTypeCountLocationsArgs
+    savedSchedules?: boolean | UserCountOutputTypeCountSavedSchedulesArgs
   }
 
   // Custom InputTypes
@@ -1448,6 +1541,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountLocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LocationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSavedSchedulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavedScheduleWhereInput
   }
 
 
@@ -1685,6 +1785,7 @@ export namespace Prisma {
     billHistory?: boolean | User$billHistoryArgs<ExtArgs>
     devices?: boolean | User$devicesArgs<ExtArgs>
     locations?: boolean | User$locationsArgs<ExtArgs>
+    savedSchedules?: boolean | User$savedSchedulesArgs<ExtArgs>
     preferences?: boolean | User$preferencesArgs<ExtArgs>
     selectedProvider?: boolean | User$selectedProviderArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -1718,6 +1819,7 @@ export namespace Prisma {
     billHistory?: boolean | User$billHistoryArgs<ExtArgs>
     devices?: boolean | User$devicesArgs<ExtArgs>
     locations?: boolean | User$locationsArgs<ExtArgs>
+    savedSchedules?: boolean | User$savedSchedulesArgs<ExtArgs>
     preferences?: boolean | User$preferencesArgs<ExtArgs>
     selectedProvider?: boolean | User$selectedProviderArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -1735,6 +1837,7 @@ export namespace Prisma {
       billHistory: Prisma.$BillHistoryPayload<ExtArgs>[]
       devices: Prisma.$DevicePayload<ExtArgs>[]
       locations: Prisma.$LocationPayload<ExtArgs>[]
+      savedSchedules: Prisma.$SavedSchedulePayload<ExtArgs>[]
       preferences: Prisma.$UserPreferencesPayload<ExtArgs> | null
       selectedProvider: Prisma.$UtilityProviderPayload<ExtArgs> | null
     }
@@ -2140,6 +2243,7 @@ export namespace Prisma {
     billHistory<T extends User$billHistoryArgs<ExtArgs> = {}>(args?: Subset<T, User$billHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     devices<T extends User$devicesArgs<ExtArgs> = {}>(args?: Subset<T, User$devicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     locations<T extends User$locationsArgs<ExtArgs> = {}>(args?: Subset<T, User$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    savedSchedules<T extends User$savedSchedulesArgs<ExtArgs> = {}>(args?: Subset<T, User$savedSchedulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     preferences<T extends User$preferencesArgs<ExtArgs> = {}>(args?: Subset<T, User$preferencesArgs<ExtArgs>>): Prisma__UserPreferencesClient<$Result.GetResult<Prisma.$UserPreferencesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     selectedProvider<T extends User$selectedProviderArgs<ExtArgs> = {}>(args?: Subset<T, User$selectedProviderArgs<ExtArgs>>): Prisma__UtilityProviderClient<$Result.GetResult<Prisma.$UtilityProviderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -2640,6 +2744,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: LocationScalarFieldEnum | LocationScalarFieldEnum[]
+  }
+
+  /**
+   * User.savedSchedules
+   */
+  export type User$savedSchedulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    where?: SavedScheduleWhereInput
+    orderBy?: SavedScheduleOrderByWithRelationInput | SavedScheduleOrderByWithRelationInput[]
+    cursor?: SavedScheduleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SavedScheduleScalarFieldEnum | SavedScheduleScalarFieldEnum[]
   }
 
   /**
@@ -5009,105 +5137,105 @@ export namespace Prisma {
   }
 
   export type BillHistoryAvgAggregateOutputType = {
-    month: number | null
-    year: number | null
     billTotal: Decimal | null
+    month: number | null
     usageKwh: number | null
+    year: number | null
   }
 
   export type BillHistorySumAggregateOutputType = {
-    month: number | null
-    year: number | null
     billTotal: Decimal | null
+    month: number | null
     usageKwh: number | null
+    year: number | null
   }
 
   export type BillHistoryMinAggregateOutputType = {
     id: string | null
     userId: string | null
-    month: number | null
-    year: number | null
     billTotal: Decimal | null
+    createdDate: Date | null
+    locationId: string | null
+    month: number | null
     usageKwh: number | null
     utility: string | null
-    locationId: string | null
-    createdDate: Date | null
+    year: number | null
   }
 
   export type BillHistoryMaxAggregateOutputType = {
     id: string | null
     userId: string | null
-    month: number | null
-    year: number | null
     billTotal: Decimal | null
+    createdDate: Date | null
+    locationId: string | null
+    month: number | null
     usageKwh: number | null
     utility: string | null
-    locationId: string | null
-    createdDate: Date | null
+    year: number | null
   }
 
   export type BillHistoryCountAggregateOutputType = {
     id: number
     userId: number
-    month: number
-    year: number
     billTotal: number
+    createdDate: number
+    locationId: number
+    month: number
     usageKwh: number
     utility: number
-    locationId: number
-    createdDate: number
+    year: number
     _all: number
   }
 
 
   export type BillHistoryAvgAggregateInputType = {
-    month?: true
-    year?: true
     billTotal?: true
+    month?: true
     usageKwh?: true
+    year?: true
   }
 
   export type BillHistorySumAggregateInputType = {
-    month?: true
-    year?: true
     billTotal?: true
+    month?: true
     usageKwh?: true
+    year?: true
   }
 
   export type BillHistoryMinAggregateInputType = {
     id?: true
     userId?: true
-    month?: true
-    year?: true
     billTotal?: true
+    createdDate?: true
+    locationId?: true
+    month?: true
     usageKwh?: true
     utility?: true
-    locationId?: true
-    createdDate?: true
+    year?: true
   }
 
   export type BillHistoryMaxAggregateInputType = {
     id?: true
     userId?: true
-    month?: true
-    year?: true
     billTotal?: true
+    createdDate?: true
+    locationId?: true
+    month?: true
     usageKwh?: true
     utility?: true
-    locationId?: true
-    createdDate?: true
+    year?: true
   }
 
   export type BillHistoryCountAggregateInputType = {
     id?: true
     userId?: true
-    month?: true
-    year?: true
     billTotal?: true
+    createdDate?: true
+    locationId?: true
+    month?: true
     usageKwh?: true
     utility?: true
-    locationId?: true
-    createdDate?: true
+    year?: true
     _all?: true
   }
 
@@ -5200,13 +5328,13 @@ export namespace Prisma {
   export type BillHistoryGroupByOutputType = {
     id: string
     userId: string
-    month: number
-    year: number
     billTotal: Decimal
+    createdDate: Date
+    locationId: string | null
+    month: number
     usageKwh: number | null
     utility: string | null
-    locationId: string | null
-    createdDate: Date
+    year: number
     _count: BillHistoryCountAggregateOutputType | null
     _avg: BillHistoryAvgAggregateOutputType | null
     _sum: BillHistorySumAggregateOutputType | null
@@ -5231,55 +5359,55 @@ export namespace Prisma {
   export type BillHistorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
-    month?: boolean
-    year?: boolean
     billTotal?: boolean
+    createdDate?: boolean
+    locationId?: boolean
+    month?: boolean
     usageKwh?: boolean
     utility?: boolean
-    locationId?: boolean
-    createdDate?: boolean
+    year?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["billHistory"]>
 
   export type BillHistorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
-    month?: boolean
-    year?: boolean
     billTotal?: boolean
+    createdDate?: boolean
+    locationId?: boolean
+    month?: boolean
     usageKwh?: boolean
     utility?: boolean
-    locationId?: boolean
-    createdDate?: boolean
+    year?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["billHistory"]>
 
   export type BillHistorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     userId?: boolean
-    month?: boolean
-    year?: boolean
     billTotal?: boolean
+    createdDate?: boolean
+    locationId?: boolean
+    month?: boolean
     usageKwh?: boolean
     utility?: boolean
-    locationId?: boolean
-    createdDate?: boolean
+    year?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["billHistory"]>
 
   export type BillHistorySelectScalar = {
     id?: boolean
     userId?: boolean
-    month?: boolean
-    year?: boolean
     billTotal?: boolean
+    createdDate?: boolean
+    locationId?: boolean
+    month?: boolean
     usageKwh?: boolean
     utility?: boolean
-    locationId?: boolean
-    createdDate?: boolean
+    year?: boolean
   }
 
-  export type BillHistoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "month" | "year" | "billTotal" | "usageKwh" | "utility" | "locationId" | "createdDate", ExtArgs["result"]["billHistory"]>
+  export type BillHistoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "billTotal" | "createdDate" | "locationId" | "month" | "usageKwh" | "utility" | "year", ExtArgs["result"]["billHistory"]>
   export type BillHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -5298,13 +5426,13 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
-      month: number
-      year: number
       billTotal: Prisma.Decimal
+      createdDate: Date
+      locationId: string | null
+      month: number
       usageKwh: number | null
       utility: string | null
-      locationId: string | null
-      createdDate: Date
+      year: number
     }, ExtArgs["result"]["billHistory"]>
     composites: {}
   }
@@ -5731,13 +5859,13 @@ export namespace Prisma {
   interface BillHistoryFieldRefs {
     readonly id: FieldRef<"BillHistory", 'String'>
     readonly userId: FieldRef<"BillHistory", 'String'>
-    readonly month: FieldRef<"BillHistory", 'Int'>
-    readonly year: FieldRef<"BillHistory", 'Int'>
     readonly billTotal: FieldRef<"BillHistory", 'Decimal'>
+    readonly createdDate: FieldRef<"BillHistory", 'DateTime'>
+    readonly locationId: FieldRef<"BillHistory", 'String'>
+    readonly month: FieldRef<"BillHistory", 'Int'>
     readonly usageKwh: FieldRef<"BillHistory", 'Int'>
     readonly utility: FieldRef<"BillHistory", 'String'>
-    readonly locationId: FieldRef<"BillHistory", 'String'>
-    readonly createdDate: FieldRef<"BillHistory", 'DateTime'>
+    readonly year: FieldRef<"BillHistory", 'Int'>
   }
     
 
@@ -6169,6 +6297,7 @@ export namespace Prisma {
     rateName: string | null
     sector: string | null
     fetchedAt: Date | null
+    service_type: string | null
   }
 
   export type UtilityProviderMaxAggregateOutputType = {
@@ -6178,6 +6307,7 @@ export namespace Prisma {
     rateName: string | null
     sector: string | null
     fetchedAt: Date | null
+    service_type: string | null
   }
 
   export type UtilityProviderCountAggregateOutputType = {
@@ -6191,6 +6321,7 @@ export namespace Prisma {
     weekendScheduleJson: number
     fuelAdjustmentsJson: number
     fetchedAt: number
+    service_type: number
     _all: number
   }
 
@@ -6202,6 +6333,7 @@ export namespace Prisma {
     rateName?: true
     sector?: true
     fetchedAt?: true
+    service_type?: true
   }
 
   export type UtilityProviderMaxAggregateInputType = {
@@ -6211,6 +6343,7 @@ export namespace Prisma {
     rateName?: true
     sector?: true
     fetchedAt?: true
+    service_type?: true
   }
 
   export type UtilityProviderCountAggregateInputType = {
@@ -6224,6 +6357,7 @@ export namespace Prisma {
     weekendScheduleJson?: true
     fuelAdjustmentsJson?: true
     fetchedAt?: true
+    service_type?: true
     _all?: true
   }
 
@@ -6310,6 +6444,7 @@ export namespace Prisma {
     weekendScheduleJson: JsonValue | null
     fuelAdjustmentsJson: JsonValue | null
     fetchedAt: Date
+    service_type: string | null
     _count: UtilityProviderCountAggregateOutputType | null
     _min: UtilityProviderMinAggregateOutputType | null
     _max: UtilityProviderMaxAggregateOutputType | null
@@ -6340,6 +6475,7 @@ export namespace Prisma {
     weekendScheduleJson?: boolean
     fuelAdjustmentsJson?: boolean
     fetchedAt?: boolean
+    service_type?: boolean
     hourlyRates?: boolean | UtilityProvider$hourlyRatesArgs<ExtArgs>
     users?: boolean | UtilityProvider$usersArgs<ExtArgs>
     _count?: boolean | UtilityProviderCountOutputTypeDefaultArgs<ExtArgs>
@@ -6356,6 +6492,7 @@ export namespace Prisma {
     weekendScheduleJson?: boolean
     fuelAdjustmentsJson?: boolean
     fetchedAt?: boolean
+    service_type?: boolean
   }, ExtArgs["result"]["utilityProvider"]>
 
   export type UtilityProviderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -6369,6 +6506,7 @@ export namespace Prisma {
     weekendScheduleJson?: boolean
     fuelAdjustmentsJson?: boolean
     fetchedAt?: boolean
+    service_type?: boolean
   }, ExtArgs["result"]["utilityProvider"]>
 
   export type UtilityProviderSelectScalar = {
@@ -6382,9 +6520,10 @@ export namespace Prisma {
     weekendScheduleJson?: boolean
     fuelAdjustmentsJson?: boolean
     fetchedAt?: boolean
+    service_type?: boolean
   }
 
-  export type UtilityProviderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "zipCode" | "utilityName" | "rateName" | "sector" | "rateStructureJson" | "weekdayScheduleJson" | "weekendScheduleJson" | "fuelAdjustmentsJson" | "fetchedAt", ExtArgs["result"]["utilityProvider"]>
+  export type UtilityProviderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "zipCode" | "utilityName" | "rateName" | "sector" | "rateStructureJson" | "weekdayScheduleJson" | "weekendScheduleJson" | "fuelAdjustmentsJson" | "fetchedAt" | "service_type", ExtArgs["result"]["utilityProvider"]>
   export type UtilityProviderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     hourlyRates?: boolean | UtilityProvider$hourlyRatesArgs<ExtArgs>
     users?: boolean | UtilityProvider$usersArgs<ExtArgs>
@@ -6410,6 +6549,7 @@ export namespace Prisma {
       weekendScheduleJson: Prisma.JsonValue | null
       fuelAdjustmentsJson: Prisma.JsonValue | null
       fetchedAt: Date
+      service_type: string | null
     }, ExtArgs["result"]["utilityProvider"]>
     composites: {}
   }
@@ -6845,6 +6985,7 @@ export namespace Prisma {
     readonly weekendScheduleJson: FieldRef<"UtilityProvider", 'Json'>
     readonly fuelAdjustmentsJson: FieldRef<"UtilityProvider", 'Json'>
     readonly fetchedAt: FieldRef<"UtilityProvider", 'DateTime'>
+    readonly service_type: FieldRef<"UtilityProvider", 'String'>
   }
     
 
@@ -9552,6 +9693,1206 @@ export namespace Prisma {
 
 
   /**
+   * Model SavedSchedule
+   */
+
+  export type AggregateSavedSchedule = {
+    _count: SavedScheduleCountAggregateOutputType | null
+    _avg: SavedScheduleAvgAggregateOutputType | null
+    _sum: SavedScheduleSumAggregateOutputType | null
+    _min: SavedScheduleMinAggregateOutputType | null
+    _max: SavedScheduleMaxAggregateOutputType | null
+  }
+
+  export type SavedScheduleAvgAggregateOutputType = {
+    optimizedCost: Decimal | null
+    typicalCost: Decimal | null
+    carbonOptimized: Decimal | null
+    carbonTypical: Decimal | null
+  }
+
+  export type SavedScheduleSumAggregateOutputType = {
+    optimizedCost: Decimal | null
+    typicalCost: Decimal | null
+    carbonOptimized: Decimal | null
+    carbonTypical: Decimal | null
+  }
+
+  export type SavedScheduleMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    scheduleDate: Date | null
+    dayOfWeek: string | null
+    optimizedCost: Decimal | null
+    typicalCost: Decimal | null
+    carbonOptimized: Decimal | null
+    carbonTypical: Decimal | null
+    status: string | null
+    followedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type SavedScheduleMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    scheduleDate: Date | null
+    dayOfWeek: string | null
+    optimizedCost: Decimal | null
+    typicalCost: Decimal | null
+    carbonOptimized: Decimal | null
+    carbonTypical: Decimal | null
+    status: string | null
+    followedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type SavedScheduleCountAggregateOutputType = {
+    id: number
+    userId: number
+    scheduleDate: number
+    dayOfWeek: number
+    scheduleJson: number
+    appliancesJson: number
+    optimizedCost: number
+    typicalCost: number
+    carbonOptimized: number
+    carbonTypical: number
+    status: number
+    followedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type SavedScheduleAvgAggregateInputType = {
+    optimizedCost?: true
+    typicalCost?: true
+    carbonOptimized?: true
+    carbonTypical?: true
+  }
+
+  export type SavedScheduleSumAggregateInputType = {
+    optimizedCost?: true
+    typicalCost?: true
+    carbonOptimized?: true
+    carbonTypical?: true
+  }
+
+  export type SavedScheduleMinAggregateInputType = {
+    id?: true
+    userId?: true
+    scheduleDate?: true
+    dayOfWeek?: true
+    optimizedCost?: true
+    typicalCost?: true
+    carbonOptimized?: true
+    carbonTypical?: true
+    status?: true
+    followedAt?: true
+    createdAt?: true
+  }
+
+  export type SavedScheduleMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    scheduleDate?: true
+    dayOfWeek?: true
+    optimizedCost?: true
+    typicalCost?: true
+    carbonOptimized?: true
+    carbonTypical?: true
+    status?: true
+    followedAt?: true
+    createdAt?: true
+  }
+
+  export type SavedScheduleCountAggregateInputType = {
+    id?: true
+    userId?: true
+    scheduleDate?: true
+    dayOfWeek?: true
+    scheduleJson?: true
+    appliancesJson?: true
+    optimizedCost?: true
+    typicalCost?: true
+    carbonOptimized?: true
+    carbonTypical?: true
+    status?: true
+    followedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type SavedScheduleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SavedSchedule to aggregate.
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavedSchedules to fetch.
+     */
+    orderBy?: SavedScheduleOrderByWithRelationInput | SavedScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SavedScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavedSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavedSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SavedSchedules
+    **/
+    _count?: true | SavedScheduleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SavedScheduleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SavedScheduleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SavedScheduleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SavedScheduleMaxAggregateInputType
+  }
+
+  export type GetSavedScheduleAggregateType<T extends SavedScheduleAggregateArgs> = {
+        [P in keyof T & keyof AggregateSavedSchedule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSavedSchedule[P]>
+      : GetScalarType<T[P], AggregateSavedSchedule[P]>
+  }
+
+
+
+
+  export type SavedScheduleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavedScheduleWhereInput
+    orderBy?: SavedScheduleOrderByWithAggregationInput | SavedScheduleOrderByWithAggregationInput[]
+    by: SavedScheduleScalarFieldEnum[] | SavedScheduleScalarFieldEnum
+    having?: SavedScheduleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SavedScheduleCountAggregateInputType | true
+    _avg?: SavedScheduleAvgAggregateInputType
+    _sum?: SavedScheduleSumAggregateInputType
+    _min?: SavedScheduleMinAggregateInputType
+    _max?: SavedScheduleMaxAggregateInputType
+  }
+
+  export type SavedScheduleGroupByOutputType = {
+    id: string
+    userId: string
+    scheduleDate: Date
+    dayOfWeek: string
+    scheduleJson: JsonValue
+    appliancesJson: JsonValue | null
+    optimizedCost: Decimal
+    typicalCost: Decimal
+    carbonOptimized: Decimal
+    carbonTypical: Decimal
+    status: string
+    followedAt: Date | null
+    createdAt: Date
+    _count: SavedScheduleCountAggregateOutputType | null
+    _avg: SavedScheduleAvgAggregateOutputType | null
+    _sum: SavedScheduleSumAggregateOutputType | null
+    _min: SavedScheduleMinAggregateOutputType | null
+    _max: SavedScheduleMaxAggregateOutputType | null
+  }
+
+  type GetSavedScheduleGroupByPayload<T extends SavedScheduleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SavedScheduleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SavedScheduleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SavedScheduleGroupByOutputType[P]>
+            : GetScalarType<T[P], SavedScheduleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SavedScheduleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    scheduleDate?: boolean
+    dayOfWeek?: boolean
+    scheduleJson?: boolean
+    appliancesJson?: boolean
+    optimizedCost?: boolean
+    typicalCost?: boolean
+    carbonOptimized?: boolean
+    carbonTypical?: boolean
+    status?: boolean
+    followedAt?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savedSchedule"]>
+
+  export type SavedScheduleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    scheduleDate?: boolean
+    dayOfWeek?: boolean
+    scheduleJson?: boolean
+    appliancesJson?: boolean
+    optimizedCost?: boolean
+    typicalCost?: boolean
+    carbonOptimized?: boolean
+    carbonTypical?: boolean
+    status?: boolean
+    followedAt?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savedSchedule"]>
+
+  export type SavedScheduleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    scheduleDate?: boolean
+    dayOfWeek?: boolean
+    scheduleJson?: boolean
+    appliancesJson?: boolean
+    optimizedCost?: boolean
+    typicalCost?: boolean
+    carbonOptimized?: boolean
+    carbonTypical?: boolean
+    status?: boolean
+    followedAt?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savedSchedule"]>
+
+  export type SavedScheduleSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    scheduleDate?: boolean
+    dayOfWeek?: boolean
+    scheduleJson?: boolean
+    appliancesJson?: boolean
+    optimizedCost?: boolean
+    typicalCost?: boolean
+    carbonOptimized?: boolean
+    carbonTypical?: boolean
+    status?: boolean
+    followedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type SavedScheduleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "scheduleDate" | "dayOfWeek" | "scheduleJson" | "appliancesJson" | "optimizedCost" | "typicalCost" | "carbonOptimized" | "carbonTypical" | "status" | "followedAt" | "createdAt", ExtArgs["result"]["savedSchedule"]>
+  export type SavedScheduleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type SavedScheduleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type SavedScheduleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $SavedSchedulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SavedSchedule"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      scheduleDate: Date
+      dayOfWeek: string
+      scheduleJson: Prisma.JsonValue
+      appliancesJson: Prisma.JsonValue | null
+      optimizedCost: Prisma.Decimal
+      typicalCost: Prisma.Decimal
+      carbonOptimized: Prisma.Decimal
+      carbonTypical: Prisma.Decimal
+      status: string
+      followedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["savedSchedule"]>
+    composites: {}
+  }
+
+  type SavedScheduleGetPayload<S extends boolean | null | undefined | SavedScheduleDefaultArgs> = $Result.GetResult<Prisma.$SavedSchedulePayload, S>
+
+  type SavedScheduleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SavedScheduleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SavedScheduleCountAggregateInputType | true
+    }
+
+  export interface SavedScheduleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SavedSchedule'], meta: { name: 'SavedSchedule' } }
+    /**
+     * Find zero or one SavedSchedule that matches the filter.
+     * @param {SavedScheduleFindUniqueArgs} args - Arguments to find a SavedSchedule
+     * @example
+     * // Get one SavedSchedule
+     * const savedSchedule = await prisma.savedSchedule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SavedScheduleFindUniqueArgs>(args: SelectSubset<T, SavedScheduleFindUniqueArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SavedSchedule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SavedScheduleFindUniqueOrThrowArgs} args - Arguments to find a SavedSchedule
+     * @example
+     * // Get one SavedSchedule
+     * const savedSchedule = await prisma.savedSchedule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SavedScheduleFindUniqueOrThrowArgs>(args: SelectSubset<T, SavedScheduleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SavedSchedule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleFindFirstArgs} args - Arguments to find a SavedSchedule
+     * @example
+     * // Get one SavedSchedule
+     * const savedSchedule = await prisma.savedSchedule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SavedScheduleFindFirstArgs>(args?: SelectSubset<T, SavedScheduleFindFirstArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SavedSchedule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleFindFirstOrThrowArgs} args - Arguments to find a SavedSchedule
+     * @example
+     * // Get one SavedSchedule
+     * const savedSchedule = await prisma.savedSchedule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SavedScheduleFindFirstOrThrowArgs>(args?: SelectSubset<T, SavedScheduleFindFirstOrThrowArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SavedSchedules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SavedSchedules
+     * const savedSchedules = await prisma.savedSchedule.findMany()
+     * 
+     * // Get first 10 SavedSchedules
+     * const savedSchedules = await prisma.savedSchedule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const savedScheduleWithIdOnly = await prisma.savedSchedule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SavedScheduleFindManyArgs>(args?: SelectSubset<T, SavedScheduleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SavedSchedule.
+     * @param {SavedScheduleCreateArgs} args - Arguments to create a SavedSchedule.
+     * @example
+     * // Create one SavedSchedule
+     * const SavedSchedule = await prisma.savedSchedule.create({
+     *   data: {
+     *     // ... data to create a SavedSchedule
+     *   }
+     * })
+     * 
+     */
+    create<T extends SavedScheduleCreateArgs>(args: SelectSubset<T, SavedScheduleCreateArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SavedSchedules.
+     * @param {SavedScheduleCreateManyArgs} args - Arguments to create many SavedSchedules.
+     * @example
+     * // Create many SavedSchedules
+     * const savedSchedule = await prisma.savedSchedule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SavedScheduleCreateManyArgs>(args?: SelectSubset<T, SavedScheduleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SavedSchedules and returns the data saved in the database.
+     * @param {SavedScheduleCreateManyAndReturnArgs} args - Arguments to create many SavedSchedules.
+     * @example
+     * // Create many SavedSchedules
+     * const savedSchedule = await prisma.savedSchedule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SavedSchedules and only return the `id`
+     * const savedScheduleWithIdOnly = await prisma.savedSchedule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SavedScheduleCreateManyAndReturnArgs>(args?: SelectSubset<T, SavedScheduleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SavedSchedule.
+     * @param {SavedScheduleDeleteArgs} args - Arguments to delete one SavedSchedule.
+     * @example
+     * // Delete one SavedSchedule
+     * const SavedSchedule = await prisma.savedSchedule.delete({
+     *   where: {
+     *     // ... filter to delete one SavedSchedule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SavedScheduleDeleteArgs>(args: SelectSubset<T, SavedScheduleDeleteArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SavedSchedule.
+     * @param {SavedScheduleUpdateArgs} args - Arguments to update one SavedSchedule.
+     * @example
+     * // Update one SavedSchedule
+     * const savedSchedule = await prisma.savedSchedule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SavedScheduleUpdateArgs>(args: SelectSubset<T, SavedScheduleUpdateArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SavedSchedules.
+     * @param {SavedScheduleDeleteManyArgs} args - Arguments to filter SavedSchedules to delete.
+     * @example
+     * // Delete a few SavedSchedules
+     * const { count } = await prisma.savedSchedule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SavedScheduleDeleteManyArgs>(args?: SelectSubset<T, SavedScheduleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SavedSchedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SavedSchedules
+     * const savedSchedule = await prisma.savedSchedule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SavedScheduleUpdateManyArgs>(args: SelectSubset<T, SavedScheduleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SavedSchedules and returns the data updated in the database.
+     * @param {SavedScheduleUpdateManyAndReturnArgs} args - Arguments to update many SavedSchedules.
+     * @example
+     * // Update many SavedSchedules
+     * const savedSchedule = await prisma.savedSchedule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SavedSchedules and only return the `id`
+     * const savedScheduleWithIdOnly = await prisma.savedSchedule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SavedScheduleUpdateManyAndReturnArgs>(args: SelectSubset<T, SavedScheduleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SavedSchedule.
+     * @param {SavedScheduleUpsertArgs} args - Arguments to update or create a SavedSchedule.
+     * @example
+     * // Update or create a SavedSchedule
+     * const savedSchedule = await prisma.savedSchedule.upsert({
+     *   create: {
+     *     // ... data to create a SavedSchedule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SavedSchedule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SavedScheduleUpsertArgs>(args: SelectSubset<T, SavedScheduleUpsertArgs<ExtArgs>>): Prisma__SavedScheduleClient<$Result.GetResult<Prisma.$SavedSchedulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SavedSchedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleCountArgs} args - Arguments to filter SavedSchedules to count.
+     * @example
+     * // Count the number of SavedSchedules
+     * const count = await prisma.savedSchedule.count({
+     *   where: {
+     *     // ... the filter for the SavedSchedules we want to count
+     *   }
+     * })
+    **/
+    count<T extends SavedScheduleCountArgs>(
+      args?: Subset<T, SavedScheduleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SavedScheduleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SavedSchedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SavedScheduleAggregateArgs>(args: Subset<T, SavedScheduleAggregateArgs>): Prisma.PrismaPromise<GetSavedScheduleAggregateType<T>>
+
+    /**
+     * Group by SavedSchedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavedScheduleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SavedScheduleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SavedScheduleGroupByArgs['orderBy'] }
+        : { orderBy?: SavedScheduleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SavedScheduleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSavedScheduleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SavedSchedule model
+   */
+  readonly fields: SavedScheduleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SavedSchedule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SavedScheduleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SavedSchedule model
+   */
+  interface SavedScheduleFieldRefs {
+    readonly id: FieldRef<"SavedSchedule", 'String'>
+    readonly userId: FieldRef<"SavedSchedule", 'String'>
+    readonly scheduleDate: FieldRef<"SavedSchedule", 'DateTime'>
+    readonly dayOfWeek: FieldRef<"SavedSchedule", 'String'>
+    readonly scheduleJson: FieldRef<"SavedSchedule", 'Json'>
+    readonly appliancesJson: FieldRef<"SavedSchedule", 'Json'>
+    readonly optimizedCost: FieldRef<"SavedSchedule", 'Decimal'>
+    readonly typicalCost: FieldRef<"SavedSchedule", 'Decimal'>
+    readonly carbonOptimized: FieldRef<"SavedSchedule", 'Decimal'>
+    readonly carbonTypical: FieldRef<"SavedSchedule", 'Decimal'>
+    readonly status: FieldRef<"SavedSchedule", 'String'>
+    readonly followedAt: FieldRef<"SavedSchedule", 'DateTime'>
+    readonly createdAt: FieldRef<"SavedSchedule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SavedSchedule findUnique
+   */
+  export type SavedScheduleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which SavedSchedule to fetch.
+     */
+    where: SavedScheduleWhereUniqueInput
+  }
+
+  /**
+   * SavedSchedule findUniqueOrThrow
+   */
+  export type SavedScheduleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which SavedSchedule to fetch.
+     */
+    where: SavedScheduleWhereUniqueInput
+  }
+
+  /**
+   * SavedSchedule findFirst
+   */
+  export type SavedScheduleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which SavedSchedule to fetch.
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavedSchedules to fetch.
+     */
+    orderBy?: SavedScheduleOrderByWithRelationInput | SavedScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SavedSchedules.
+     */
+    cursor?: SavedScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavedSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavedSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SavedSchedules.
+     */
+    distinct?: SavedScheduleScalarFieldEnum | SavedScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * SavedSchedule findFirstOrThrow
+   */
+  export type SavedScheduleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which SavedSchedule to fetch.
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavedSchedules to fetch.
+     */
+    orderBy?: SavedScheduleOrderByWithRelationInput | SavedScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SavedSchedules.
+     */
+    cursor?: SavedScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavedSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavedSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SavedSchedules.
+     */
+    distinct?: SavedScheduleScalarFieldEnum | SavedScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * SavedSchedule findMany
+   */
+  export type SavedScheduleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which SavedSchedules to fetch.
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavedSchedules to fetch.
+     */
+    orderBy?: SavedScheduleOrderByWithRelationInput | SavedScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SavedSchedules.
+     */
+    cursor?: SavedScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavedSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavedSchedules.
+     */
+    skip?: number
+    distinct?: SavedScheduleScalarFieldEnum | SavedScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * SavedSchedule create
+   */
+  export type SavedScheduleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SavedSchedule.
+     */
+    data: XOR<SavedScheduleCreateInput, SavedScheduleUncheckedCreateInput>
+  }
+
+  /**
+   * SavedSchedule createMany
+   */
+  export type SavedScheduleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SavedSchedules.
+     */
+    data: SavedScheduleCreateManyInput | SavedScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SavedSchedule createManyAndReturn
+   */
+  export type SavedScheduleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to create many SavedSchedules.
+     */
+    data: SavedScheduleCreateManyInput | SavedScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SavedSchedule update
+   */
+  export type SavedScheduleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SavedSchedule.
+     */
+    data: XOR<SavedScheduleUpdateInput, SavedScheduleUncheckedUpdateInput>
+    /**
+     * Choose, which SavedSchedule to update.
+     */
+    where: SavedScheduleWhereUniqueInput
+  }
+
+  /**
+   * SavedSchedule updateMany
+   */
+  export type SavedScheduleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SavedSchedules.
+     */
+    data: XOR<SavedScheduleUpdateManyMutationInput, SavedScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which SavedSchedules to update
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * Limit how many SavedSchedules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SavedSchedule updateManyAndReturn
+   */
+  export type SavedScheduleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to update SavedSchedules.
+     */
+    data: XOR<SavedScheduleUpdateManyMutationInput, SavedScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which SavedSchedules to update
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * Limit how many SavedSchedules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SavedSchedule upsert
+   */
+  export type SavedScheduleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SavedSchedule to update in case it exists.
+     */
+    where: SavedScheduleWhereUniqueInput
+    /**
+     * In case the SavedSchedule found by the `where` argument doesn't exist, create a new SavedSchedule with this data.
+     */
+    create: XOR<SavedScheduleCreateInput, SavedScheduleUncheckedCreateInput>
+    /**
+     * In case the SavedSchedule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SavedScheduleUpdateInput, SavedScheduleUncheckedUpdateInput>
+  }
+
+  /**
+   * SavedSchedule delete
+   */
+  export type SavedScheduleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+    /**
+     * Filter which SavedSchedule to delete.
+     */
+    where: SavedScheduleWhereUniqueInput
+  }
+
+  /**
+   * SavedSchedule deleteMany
+   */
+  export type SavedScheduleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SavedSchedules to delete
+     */
+    where?: SavedScheduleWhereInput
+    /**
+     * Limit how many SavedSchedules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SavedSchedule without action
+   */
+  export type SavedScheduleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavedSchedule
+     */
+    select?: SavedScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavedSchedule
+     */
+    omit?: SavedScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavedScheduleInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -9606,13 +10947,13 @@ export namespace Prisma {
   export const BillHistoryScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
-    month: 'month',
-    year: 'year',
     billTotal: 'billTotal',
+    createdDate: 'createdDate',
+    locationId: 'locationId',
+    month: 'month',
     usageKwh: 'usageKwh',
     utility: 'utility',
-    locationId: 'locationId',
-    createdDate: 'createdDate'
+    year: 'year'
   };
 
   export type BillHistoryScalarFieldEnum = (typeof BillHistoryScalarFieldEnum)[keyof typeof BillHistoryScalarFieldEnum]
@@ -9628,7 +10969,8 @@ export namespace Prisma {
     weekdayScheduleJson: 'weekdayScheduleJson',
     weekendScheduleJson: 'weekendScheduleJson',
     fuelAdjustmentsJson: 'fuelAdjustmentsJson',
-    fetchedAt: 'fetchedAt'
+    fetchedAt: 'fetchedAt',
+    service_type: 'service_type'
   };
 
   export type UtilityProviderScalarFieldEnum = (typeof UtilityProviderScalarFieldEnum)[keyof typeof UtilityProviderScalarFieldEnum]
@@ -9658,6 +11000,25 @@ export namespace Prisma {
   };
 
   export type HourlyRateScalarFieldEnum = (typeof HourlyRateScalarFieldEnum)[keyof typeof HourlyRateScalarFieldEnum]
+
+
+  export const SavedScheduleScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    scheduleDate: 'scheduleDate',
+    dayOfWeek: 'dayOfWeek',
+    scheduleJson: 'scheduleJson',
+    appliancesJson: 'appliancesJson',
+    optimizedCost: 'optimizedCost',
+    typicalCost: 'typicalCost',
+    carbonOptimized: 'carbonOptimized',
+    carbonTypical: 'carbonTypical',
+    status: 'status',
+    followedAt: 'followedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type SavedScheduleScalarFieldEnum = (typeof SavedScheduleScalarFieldEnum)[keyof typeof SavedScheduleScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -9818,6 +11179,7 @@ export namespace Prisma {
     billHistory?: BillHistoryListRelationFilter
     devices?: DeviceListRelationFilter
     locations?: LocationListRelationFilter
+    savedSchedules?: SavedScheduleListRelationFilter
     preferences?: XOR<UserPreferencesNullableScalarRelationFilter, UserPreferencesWhereInput> | null
     selectedProvider?: XOR<UtilityProviderNullableScalarRelationFilter, UtilityProviderWhereInput> | null
   }
@@ -9830,6 +11192,7 @@ export namespace Prisma {
     billHistory?: BillHistoryOrderByRelationAggregateInput
     devices?: DeviceOrderByRelationAggregateInput
     locations?: LocationOrderByRelationAggregateInput
+    savedSchedules?: SavedScheduleOrderByRelationAggregateInput
     preferences?: UserPreferencesOrderByWithRelationInput
     selectedProvider?: UtilityProviderOrderByWithRelationInput
   }
@@ -9845,6 +11208,7 @@ export namespace Prisma {
     billHistory?: BillHistoryListRelationFilter
     devices?: DeviceListRelationFilter
     locations?: LocationListRelationFilter
+    savedSchedules?: SavedScheduleListRelationFilter
     preferences?: XOR<UserPreferencesNullableScalarRelationFilter, UserPreferencesWhereInput> | null
     selectedProvider?: XOR<UtilityProviderNullableScalarRelationFilter, UtilityProviderWhereInput> | null
   }, "id" | "email">
@@ -10023,26 +11387,26 @@ export namespace Prisma {
     NOT?: BillHistoryWhereInput | BillHistoryWhereInput[]
     id?: StringFilter<"BillHistory"> | string
     userId?: StringFilter<"BillHistory"> | string
-    month?: IntFilter<"BillHistory"> | number
-    year?: IntFilter<"BillHistory"> | number
     billTotal?: DecimalFilter<"BillHistory"> | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFilter<"BillHistory"> | Date | string
+    locationId?: StringNullableFilter<"BillHistory"> | string | null
+    month?: IntFilter<"BillHistory"> | number
     usageKwh?: IntNullableFilter<"BillHistory"> | number | null
     utility?: StringNullableFilter<"BillHistory"> | string | null
-    locationId?: StringNullableFilter<"BillHistory"> | string | null
-    createdDate?: DateTimeFilter<"BillHistory"> | Date | string
+    year?: IntFilter<"BillHistory"> | number
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type BillHistoryOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrder
-    month?: SortOrder
-    year?: SortOrder
     billTotal?: SortOrder
+    createdDate?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    month?: SortOrder
     usageKwh?: SortOrderInput | SortOrder
     utility?: SortOrderInput | SortOrder
-    locationId?: SortOrderInput | SortOrder
-    createdDate?: SortOrder
+    year?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -10052,26 +11416,26 @@ export namespace Prisma {
     OR?: BillHistoryWhereInput[]
     NOT?: BillHistoryWhereInput | BillHistoryWhereInput[]
     userId?: StringFilter<"BillHistory"> | string
-    month?: IntFilter<"BillHistory"> | number
-    year?: IntFilter<"BillHistory"> | number
     billTotal?: DecimalFilter<"BillHistory"> | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFilter<"BillHistory"> | Date | string
+    locationId?: StringNullableFilter<"BillHistory"> | string | null
+    month?: IntFilter<"BillHistory"> | number
     usageKwh?: IntNullableFilter<"BillHistory"> | number | null
     utility?: StringNullableFilter<"BillHistory"> | string | null
-    locationId?: StringNullableFilter<"BillHistory"> | string | null
-    createdDate?: DateTimeFilter<"BillHistory"> | Date | string
+    year?: IntFilter<"BillHistory"> | number
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
   export type BillHistoryOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrder
-    month?: SortOrder
-    year?: SortOrder
     billTotal?: SortOrder
+    createdDate?: SortOrder
+    locationId?: SortOrderInput | SortOrder
+    month?: SortOrder
     usageKwh?: SortOrderInput | SortOrder
     utility?: SortOrderInput | SortOrder
-    locationId?: SortOrderInput | SortOrder
-    createdDate?: SortOrder
+    year?: SortOrder
     _count?: BillHistoryCountOrderByAggregateInput
     _avg?: BillHistoryAvgOrderByAggregateInput
     _max?: BillHistoryMaxOrderByAggregateInput
@@ -10085,13 +11449,13 @@ export namespace Prisma {
     NOT?: BillHistoryScalarWhereWithAggregatesInput | BillHistoryScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"BillHistory"> | string
     userId?: StringWithAggregatesFilter<"BillHistory"> | string
-    month?: IntWithAggregatesFilter<"BillHistory"> | number
-    year?: IntWithAggregatesFilter<"BillHistory"> | number
     billTotal?: DecimalWithAggregatesFilter<"BillHistory"> | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeWithAggregatesFilter<"BillHistory"> | Date | string
+    locationId?: StringNullableWithAggregatesFilter<"BillHistory"> | string | null
+    month?: IntWithAggregatesFilter<"BillHistory"> | number
     usageKwh?: IntNullableWithAggregatesFilter<"BillHistory"> | number | null
     utility?: StringNullableWithAggregatesFilter<"BillHistory"> | string | null
-    locationId?: StringNullableWithAggregatesFilter<"BillHistory"> | string | null
-    createdDate?: DateTimeWithAggregatesFilter<"BillHistory"> | Date | string
+    year?: IntWithAggregatesFilter<"BillHistory"> | number
   }
 
   export type UtilityProviderWhereInput = {
@@ -10108,6 +11472,7 @@ export namespace Prisma {
     weekendScheduleJson?: JsonNullableFilter<"UtilityProvider">
     fuelAdjustmentsJson?: JsonNullableFilter<"UtilityProvider">
     fetchedAt?: DateTimeFilter<"UtilityProvider"> | Date | string
+    service_type?: StringNullableFilter<"UtilityProvider"> | string | null
     hourlyRates?: HourlyRateListRelationFilter
     users?: UserListRelationFilter
   }
@@ -10123,6 +11488,7 @@ export namespace Prisma {
     weekendScheduleJson?: SortOrderInput | SortOrder
     fuelAdjustmentsJson?: SortOrderInput | SortOrder
     fetchedAt?: SortOrder
+    service_type?: SortOrderInput | SortOrder
     hourlyRates?: HourlyRateOrderByRelationAggregateInput
     users?: UserOrderByRelationAggregateInput
   }
@@ -10142,6 +11508,7 @@ export namespace Prisma {
     weekendScheduleJson?: JsonNullableFilter<"UtilityProvider">
     fuelAdjustmentsJson?: JsonNullableFilter<"UtilityProvider">
     fetchedAt?: DateTimeFilter<"UtilityProvider"> | Date | string
+    service_type?: StringNullableFilter<"UtilityProvider"> | string | null
     hourlyRates?: HourlyRateListRelationFilter
     users?: UserListRelationFilter
   }, "id" | "zipCode_utilityName_rateName">
@@ -10157,6 +11524,7 @@ export namespace Prisma {
     weekendScheduleJson?: SortOrderInput | SortOrder
     fuelAdjustmentsJson?: SortOrderInput | SortOrder
     fetchedAt?: SortOrder
+    service_type?: SortOrderInput | SortOrder
     _count?: UtilityProviderCountOrderByAggregateInput
     _max?: UtilityProviderMaxOrderByAggregateInput
     _min?: UtilityProviderMinOrderByAggregateInput
@@ -10176,6 +11544,7 @@ export namespace Prisma {
     weekendScheduleJson?: JsonNullableWithAggregatesFilter<"UtilityProvider">
     fuelAdjustmentsJson?: JsonNullableWithAggregatesFilter<"UtilityProvider">
     fetchedAt?: DateTimeWithAggregatesFilter<"UtilityProvider"> | Date | string
+    service_type?: StringNullableWithAggregatesFilter<"UtilityProvider"> | string | null
   }
 
   export type UserPreferencesWhereInput = {
@@ -10313,6 +11682,104 @@ export namespace Prisma {
     periodLabel?: StringWithAggregatesFilter<"HourlyRate"> | string
   }
 
+  export type SavedScheduleWhereInput = {
+    AND?: SavedScheduleWhereInput | SavedScheduleWhereInput[]
+    OR?: SavedScheduleWhereInput[]
+    NOT?: SavedScheduleWhereInput | SavedScheduleWhereInput[]
+    id?: StringFilter<"SavedSchedule"> | string
+    userId?: StringFilter<"SavedSchedule"> | string
+    scheduleDate?: DateTimeFilter<"SavedSchedule"> | Date | string
+    dayOfWeek?: StringFilter<"SavedSchedule"> | string
+    scheduleJson?: JsonFilter<"SavedSchedule">
+    appliancesJson?: JsonNullableFilter<"SavedSchedule">
+    optimizedCost?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    status?: StringFilter<"SavedSchedule"> | string
+    followedAt?: DateTimeNullableFilter<"SavedSchedule"> | Date | string | null
+    createdAt?: DateTimeFilter<"SavedSchedule"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type SavedScheduleOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scheduleDate?: SortOrder
+    dayOfWeek?: SortOrder
+    scheduleJson?: SortOrder
+    appliancesJson?: SortOrderInput | SortOrder
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+    status?: SortOrder
+    followedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type SavedScheduleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_scheduleDate?: SavedScheduleUserIdScheduleDateCompoundUniqueInput
+    AND?: SavedScheduleWhereInput | SavedScheduleWhereInput[]
+    OR?: SavedScheduleWhereInput[]
+    NOT?: SavedScheduleWhereInput | SavedScheduleWhereInput[]
+    userId?: StringFilter<"SavedSchedule"> | string
+    scheduleDate?: DateTimeFilter<"SavedSchedule"> | Date | string
+    dayOfWeek?: StringFilter<"SavedSchedule"> | string
+    scheduleJson?: JsonFilter<"SavedSchedule">
+    appliancesJson?: JsonNullableFilter<"SavedSchedule">
+    optimizedCost?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    status?: StringFilter<"SavedSchedule"> | string
+    followedAt?: DateTimeNullableFilter<"SavedSchedule"> | Date | string | null
+    createdAt?: DateTimeFilter<"SavedSchedule"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId_scheduleDate">
+
+  export type SavedScheduleOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scheduleDate?: SortOrder
+    dayOfWeek?: SortOrder
+    scheduleJson?: SortOrder
+    appliancesJson?: SortOrderInput | SortOrder
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+    status?: SortOrder
+    followedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: SavedScheduleCountOrderByAggregateInput
+    _avg?: SavedScheduleAvgOrderByAggregateInput
+    _max?: SavedScheduleMaxOrderByAggregateInput
+    _min?: SavedScheduleMinOrderByAggregateInput
+    _sum?: SavedScheduleSumOrderByAggregateInput
+  }
+
+  export type SavedScheduleScalarWhereWithAggregatesInput = {
+    AND?: SavedScheduleScalarWhereWithAggregatesInput | SavedScheduleScalarWhereWithAggregatesInput[]
+    OR?: SavedScheduleScalarWhereWithAggregatesInput[]
+    NOT?: SavedScheduleScalarWhereWithAggregatesInput | SavedScheduleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SavedSchedule"> | string
+    userId?: StringWithAggregatesFilter<"SavedSchedule"> | string
+    scheduleDate?: DateTimeWithAggregatesFilter<"SavedSchedule"> | Date | string
+    dayOfWeek?: StringWithAggregatesFilter<"SavedSchedule"> | string
+    scheduleJson?: JsonWithAggregatesFilter<"SavedSchedule">
+    appliancesJson?: JsonNullableWithAggregatesFilter<"SavedSchedule">
+    optimizedCost?: DecimalWithAggregatesFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalWithAggregatesFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalWithAggregatesFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalWithAggregatesFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    status?: StringWithAggregatesFilter<"SavedSchedule"> | string
+    followedAt?: DateTimeNullableWithAggregatesFilter<"SavedSchedule"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SavedSchedule"> | Date | string
+  }
+
   export type UserCreateInput = {
     id: string
     email: string
@@ -10320,6 +11787,7 @@ export namespace Prisma {
     billHistory?: BillHistoryCreateNestedManyWithoutUserInput
     devices?: DeviceCreateNestedManyWithoutUserInput
     locations?: LocationCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesCreateNestedOneWithoutUserInput
     selectedProvider?: UtilityProviderCreateNestedOneWithoutUsersInput
   }
@@ -10332,6 +11800,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUncheckedCreateNestedManyWithoutUserInput
     devices?: DeviceUncheckedCreateNestedManyWithoutUserInput
     locations?: LocationUncheckedCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleUncheckedCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   }
 
@@ -10342,6 +11811,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUpdateManyWithoutUserNestedInput
     devices?: DeviceUpdateManyWithoutUserNestedInput
     locations?: LocationUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUpdateOneWithoutUserNestedInput
     selectedProvider?: UtilityProviderUpdateOneWithoutUsersNestedInput
   }
@@ -10354,6 +11824,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUncheckedUpdateManyWithoutUserNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutUserNestedInput
     locations?: LocationUncheckedUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUncheckedUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   }
 
@@ -10534,85 +12005,85 @@ export namespace Prisma {
 
   export type BillHistoryCreateInput = {
     id?: string
-    month: number
-    year: number
     billTotal: Decimal | DecimalJsLike | number | string
+    createdDate?: Date | string
+    locationId?: string | null
+    month: number
     usageKwh?: number | null
     utility?: string | null
-    locationId?: string | null
-    createdDate?: Date | string
+    year: number
     user: UserCreateNestedOneWithoutBillHistoryInput
   }
 
   export type BillHistoryUncheckedCreateInput = {
     id?: string
     userId: string
-    month: number
-    year: number
     billTotal: Decimal | DecimalJsLike | number | string
+    createdDate?: Date | string
+    locationId?: string | null
+    month: number
     usageKwh?: number | null
     utility?: string | null
-    locationId?: string | null
-    createdDate?: Date | string
+    year: number
   }
 
   export type BillHistoryUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
     user?: UserUpdateOneRequiredWithoutBillHistoryNestedInput
   }
 
   export type BillHistoryUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
   }
 
   export type BillHistoryCreateManyInput = {
     id?: string
     userId: string
-    month: number
-    year: number
     billTotal: Decimal | DecimalJsLike | number | string
+    createdDate?: Date | string
+    locationId?: string | null
+    month: number
     usageKwh?: number | null
     utility?: string | null
-    locationId?: string | null
-    createdDate?: Date | string
+    year: number
   }
 
   export type BillHistoryUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
   }
 
   export type BillHistoryUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
   }
 
   export type UtilityProviderCreateInput = {
@@ -10626,6 +12097,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
     hourlyRates?: HourlyRateCreateNestedManyWithoutProviderInput
     users?: UserCreateNestedManyWithoutSelectedProviderInput
   }
@@ -10641,6 +12113,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
     hourlyRates?: HourlyRateUncheckedCreateNestedManyWithoutProviderInput
     users?: UserUncheckedCreateNestedManyWithoutSelectedProviderInput
   }
@@ -10656,6 +12129,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyRates?: HourlyRateUpdateManyWithoutProviderNestedInput
     users?: UserUpdateManyWithoutSelectedProviderNestedInput
   }
@@ -10671,6 +12145,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyRates?: HourlyRateUncheckedUpdateManyWithoutProviderNestedInput
     users?: UserUncheckedUpdateManyWithoutSelectedProviderNestedInput
   }
@@ -10686,6 +12161,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
   }
 
   export type UtilityProviderUpdateManyMutationInput = {
@@ -10699,6 +12175,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UtilityProviderUncheckedUpdateManyInput = {
@@ -10712,6 +12189,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserPreferencesCreateInput = {
@@ -10852,6 +12330,117 @@ export namespace Prisma {
     periodLabel?: StringFieldUpdateOperationsInput | string
   }
 
+  export type SavedScheduleCreateInput = {
+    id?: string
+    scheduleDate: Date | string
+    dayOfWeek: string
+    scheduleJson: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost: Decimal | DecimalJsLike | number | string
+    typicalCost: Decimal | DecimalJsLike | number | string
+    carbonOptimized: Decimal | DecimalJsLike | number | string
+    carbonTypical: Decimal | DecimalJsLike | number | string
+    status?: string
+    followedAt?: Date | string | null
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutSavedSchedulesInput
+  }
+
+  export type SavedScheduleUncheckedCreateInput = {
+    id?: string
+    userId: string
+    scheduleDate: Date | string
+    dayOfWeek: string
+    scheduleJson: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost: Decimal | DecimalJsLike | number | string
+    typicalCost: Decimal | DecimalJsLike | number | string
+    carbonOptimized: Decimal | DecimalJsLike | number | string
+    carbonTypical: Decimal | DecimalJsLike | number | string
+    status?: string
+    followedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type SavedScheduleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSavedSchedulesNestedInput
+  }
+
+  export type SavedScheduleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavedScheduleCreateManyInput = {
+    id?: string
+    userId: string
+    scheduleDate: Date | string
+    dayOfWeek: string
+    scheduleJson: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost: Decimal | DecimalJsLike | number | string
+    typicalCost: Decimal | DecimalJsLike | number | string
+    carbonOptimized: Decimal | DecimalJsLike | number | string
+    carbonTypical: Decimal | DecimalJsLike | number | string
+    status?: string
+    followedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type SavedScheduleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavedScheduleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -10900,6 +12489,12 @@ export namespace Prisma {
     none?: LocationWhereInput
   }
 
+  export type SavedScheduleListRelationFilter = {
+    every?: SavedScheduleWhereInput
+    some?: SavedScheduleWhereInput
+    none?: SavedScheduleWhereInput
+  }
+
   export type UserPreferencesNullableScalarRelationFilter = {
     is?: UserPreferencesWhereInput | null
     isNot?: UserPreferencesWhereInput | null
@@ -10924,6 +12519,10 @@ export namespace Prisma {
   }
 
   export type LocationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SavedScheduleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -11141,17 +12740,6 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type DecimalFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
@@ -11174,57 +12762,7 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type BillHistoryCountOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    month?: SortOrder
-    year?: SortOrder
-    billTotal?: SortOrder
-    usageKwh?: SortOrder
-    utility?: SortOrder
-    locationId?: SortOrder
-    createdDate?: SortOrder
-  }
-
-  export type BillHistoryAvgOrderByAggregateInput = {
-    month?: SortOrder
-    year?: SortOrder
-    billTotal?: SortOrder
-    usageKwh?: SortOrder
-  }
-
-  export type BillHistoryMaxOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    month?: SortOrder
-    year?: SortOrder
-    billTotal?: SortOrder
-    usageKwh?: SortOrder
-    utility?: SortOrder
-    locationId?: SortOrder
-    createdDate?: SortOrder
-  }
-
-  export type BillHistoryMinOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    month?: SortOrder
-    year?: SortOrder
-    billTotal?: SortOrder
-    usageKwh?: SortOrder
-    utility?: SortOrder
-    locationId?: SortOrder
-    createdDate?: SortOrder
-  }
-
-  export type BillHistorySumOrderByAggregateInput = {
-    month?: SortOrder
-    year?: SortOrder
-    billTotal?: SortOrder
-    usageKwh?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+  export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
     notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -11232,12 +12770,57 @@ export namespace Prisma {
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type BillHistoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    billTotal?: SortOrder
+    createdDate?: SortOrder
+    locationId?: SortOrder
+    month?: SortOrder
+    usageKwh?: SortOrder
+    utility?: SortOrder
+    year?: SortOrder
+  }
+
+  export type BillHistoryAvgOrderByAggregateInput = {
+    billTotal?: SortOrder
+    month?: SortOrder
+    usageKwh?: SortOrder
+    year?: SortOrder
+  }
+
+  export type BillHistoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    billTotal?: SortOrder
+    createdDate?: SortOrder
+    locationId?: SortOrder
+    month?: SortOrder
+    usageKwh?: SortOrder
+    utility?: SortOrder
+    year?: SortOrder
+  }
+
+  export type BillHistoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    billTotal?: SortOrder
+    createdDate?: SortOrder
+    locationId?: SortOrder
+    month?: SortOrder
+    usageKwh?: SortOrder
+    utility?: SortOrder
+    year?: SortOrder
+  }
+
+  export type BillHistorySumOrderByAggregateInput = {
+    billTotal?: SortOrder
+    month?: SortOrder
+    usageKwh?: SortOrder
+    year?: SortOrder
   }
 
   export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -11268,6 +12851,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
   export type JsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -11330,6 +12929,7 @@ export namespace Prisma {
     weekendScheduleJson?: SortOrder
     fuelAdjustmentsJson?: SortOrder
     fetchedAt?: SortOrder
+    service_type?: SortOrder
   }
 
   export type UtilityProviderMaxOrderByAggregateInput = {
@@ -11339,6 +12939,7 @@ export namespace Prisma {
     rateName?: SortOrder
     sector?: SortOrder
     fetchedAt?: SortOrder
+    service_type?: SortOrder
   }
 
   export type UtilityProviderMinOrderByAggregateInput = {
@@ -11348,6 +12949,7 @@ export namespace Prisma {
     rateName?: SortOrder
     sector?: SortOrder
     fetchedAt?: SortOrder
+    service_type?: SortOrder
   }
   export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -11547,6 +13149,94 @@ export namespace Prisma {
     periodIndex?: SortOrder
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type SavedScheduleUserIdScheduleDateCompoundUniqueInput = {
+    userId: string
+    scheduleDate: Date | string
+  }
+
+  export type SavedScheduleCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scheduleDate?: SortOrder
+    dayOfWeek?: SortOrder
+    scheduleJson?: SortOrder
+    appliancesJson?: SortOrder
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+    status?: SortOrder
+    followedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SavedScheduleAvgOrderByAggregateInput = {
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+  }
+
+  export type SavedScheduleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scheduleDate?: SortOrder
+    dayOfWeek?: SortOrder
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+    status?: SortOrder
+    followedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SavedScheduleMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scheduleDate?: SortOrder
+    dayOfWeek?: SortOrder
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+    status?: SortOrder
+    followedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SavedScheduleSumOrderByAggregateInput = {
+    optimizedCost?: SortOrder
+    typicalCost?: SortOrder
+    carbonOptimized?: SortOrder
+    carbonTypical?: SortOrder
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type BillHistoryCreateNestedManyWithoutUserInput = {
     create?: XOR<BillHistoryCreateWithoutUserInput, BillHistoryUncheckedCreateWithoutUserInput> | BillHistoryCreateWithoutUserInput[] | BillHistoryUncheckedCreateWithoutUserInput[]
     connectOrCreate?: BillHistoryCreateOrConnectWithoutUserInput | BillHistoryCreateOrConnectWithoutUserInput[]
@@ -11566,6 +13256,13 @@ export namespace Prisma {
     connectOrCreate?: LocationCreateOrConnectWithoutUserInput | LocationCreateOrConnectWithoutUserInput[]
     createMany?: LocationCreateManyUserInputEnvelope
     connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
+  export type SavedScheduleCreateNestedManyWithoutUserInput = {
+    create?: XOR<SavedScheduleCreateWithoutUserInput, SavedScheduleUncheckedCreateWithoutUserInput> | SavedScheduleCreateWithoutUserInput[] | SavedScheduleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavedScheduleCreateOrConnectWithoutUserInput | SavedScheduleCreateOrConnectWithoutUserInput[]
+    createMany?: SavedScheduleCreateManyUserInputEnvelope
+    connect?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
   }
 
   export type UserPreferencesCreateNestedOneWithoutUserInput = {
@@ -11599,6 +13296,13 @@ export namespace Prisma {
     connectOrCreate?: LocationCreateOrConnectWithoutUserInput | LocationCreateOrConnectWithoutUserInput[]
     createMany?: LocationCreateManyUserInputEnvelope
     connect?: LocationWhereUniqueInput | LocationWhereUniqueInput[]
+  }
+
+  export type SavedScheduleUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<SavedScheduleCreateWithoutUserInput, SavedScheduleUncheckedCreateWithoutUserInput> | SavedScheduleCreateWithoutUserInput[] | SavedScheduleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavedScheduleCreateOrConnectWithoutUserInput | SavedScheduleCreateOrConnectWithoutUserInput[]
+    createMany?: SavedScheduleCreateManyUserInputEnvelope
+    connect?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
   }
 
   export type UserPreferencesUncheckedCreateNestedOneWithoutUserInput = {
@@ -11655,6 +13359,20 @@ export namespace Prisma {
     update?: LocationUpdateWithWhereUniqueWithoutUserInput | LocationUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: LocationUpdateManyWithWhereWithoutUserInput | LocationUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
+  export type SavedScheduleUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SavedScheduleCreateWithoutUserInput, SavedScheduleUncheckedCreateWithoutUserInput> | SavedScheduleCreateWithoutUserInput[] | SavedScheduleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavedScheduleCreateOrConnectWithoutUserInput | SavedScheduleCreateOrConnectWithoutUserInput[]
+    upsert?: SavedScheduleUpsertWithWhereUniqueWithoutUserInput | SavedScheduleUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SavedScheduleCreateManyUserInputEnvelope
+    set?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    disconnect?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    delete?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    connect?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    update?: SavedScheduleUpdateWithWhereUniqueWithoutUserInput | SavedScheduleUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SavedScheduleUpdateManyWithWhereWithoutUserInput | SavedScheduleUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SavedScheduleScalarWhereInput | SavedScheduleScalarWhereInput[]
   }
 
   export type UserPreferencesUpdateOneWithoutUserNestedInput = {
@@ -11717,6 +13435,20 @@ export namespace Prisma {
     update?: LocationUpdateWithWhereUniqueWithoutUserInput | LocationUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: LocationUpdateManyWithWhereWithoutUserInput | LocationUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: LocationScalarWhereInput | LocationScalarWhereInput[]
+  }
+
+  export type SavedScheduleUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SavedScheduleCreateWithoutUserInput, SavedScheduleUncheckedCreateWithoutUserInput> | SavedScheduleCreateWithoutUserInput[] | SavedScheduleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavedScheduleCreateOrConnectWithoutUserInput | SavedScheduleCreateOrConnectWithoutUserInput[]
+    upsert?: SavedScheduleUpsertWithWhereUniqueWithoutUserInput | SavedScheduleUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SavedScheduleCreateManyUserInputEnvelope
+    set?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    disconnect?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    delete?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    connect?: SavedScheduleWhereUniqueInput | SavedScheduleWhereUniqueInput[]
+    update?: SavedScheduleUpdateWithWhereUniqueWithoutUserInput | SavedScheduleUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SavedScheduleUpdateManyWithWhereWithoutUserInput | SavedScheduleUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SavedScheduleScalarWhereInput | SavedScheduleScalarWhereInput[]
   }
 
   export type UserPreferencesUncheckedUpdateOneWithoutUserNestedInput = {
@@ -11841,14 +13573,6 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type DecimalFieldUpdateOperationsInput = {
     set?: Decimal | DecimalJsLike | number | string
     increment?: Decimal | DecimalJsLike | number | string
@@ -11859,6 +13583,14 @@ export namespace Prisma {
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type UserUpdateOneRequiredWithoutBillHistoryNestedInput = {
@@ -11987,6 +13719,24 @@ export namespace Prisma {
     upsert?: UtilityProviderUpsertWithoutHourlyRatesInput
     connect?: UtilityProviderWhereUniqueInput
     update?: XOR<XOR<UtilityProviderUpdateToOneWithWhereWithoutHourlyRatesInput, UtilityProviderUpdateWithoutHourlyRatesInput>, UtilityProviderUncheckedUpdateWithoutHourlyRatesInput>
+  }
+
+  export type UserCreateNestedOneWithoutSavedSchedulesInput = {
+    create?: XOR<UserCreateWithoutSavedSchedulesInput, UserUncheckedCreateWithoutSavedSchedulesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSavedSchedulesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
+  export type UserUpdateOneRequiredWithoutSavedSchedulesNestedInput = {
+    create?: XOR<UserCreateWithoutSavedSchedulesInput, UserUncheckedCreateWithoutSavedSchedulesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSavedSchedulesInput
+    upsert?: UserUpsertWithoutSavedSchedulesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSavedSchedulesInput, UserUpdateWithoutSavedSchedulesInput>, UserUncheckedUpdateWithoutSavedSchedulesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -12151,33 +13901,6 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
@@ -12206,6 +13929,33 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
   }
   export type NestedJsonNullableFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -12270,26 +14020,51 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type BillHistoryCreateWithoutUserInput = {
     id?: string
-    month: number
-    year: number
     billTotal: Decimal | DecimalJsLike | number | string
+    createdDate?: Date | string
+    locationId?: string | null
+    month: number
     usageKwh?: number | null
     utility?: string | null
-    locationId?: string | null
-    createdDate?: Date | string
+    year: number
   }
 
   export type BillHistoryUncheckedCreateWithoutUserInput = {
     id?: string
-    month: number
-    year: number
     billTotal: Decimal | DecimalJsLike | number | string
+    createdDate?: Date | string
+    locationId?: string | null
+    month: number
     usageKwh?: number | null
     utility?: string | null
-    locationId?: string | null
-    createdDate?: Date | string
+    year: number
   }
 
   export type BillHistoryCreateOrConnectWithoutUserInput = {
@@ -12364,6 +14139,46 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SavedScheduleCreateWithoutUserInput = {
+    id?: string
+    scheduleDate: Date | string
+    dayOfWeek: string
+    scheduleJson: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost: Decimal | DecimalJsLike | number | string
+    typicalCost: Decimal | DecimalJsLike | number | string
+    carbonOptimized: Decimal | DecimalJsLike | number | string
+    carbonTypical: Decimal | DecimalJsLike | number | string
+    status?: string
+    followedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type SavedScheduleUncheckedCreateWithoutUserInput = {
+    id?: string
+    scheduleDate: Date | string
+    dayOfWeek: string
+    scheduleJson: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost: Decimal | DecimalJsLike | number | string
+    typicalCost: Decimal | DecimalJsLike | number | string
+    carbonOptimized: Decimal | DecimalJsLike | number | string
+    carbonTypical: Decimal | DecimalJsLike | number | string
+    status?: string
+    followedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type SavedScheduleCreateOrConnectWithoutUserInput = {
+    where: SavedScheduleWhereUniqueInput
+    create: XOR<SavedScheduleCreateWithoutUserInput, SavedScheduleUncheckedCreateWithoutUserInput>
+  }
+
+  export type SavedScheduleCreateManyUserInputEnvelope = {
+    data: SavedScheduleCreateManyUserInput | SavedScheduleCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserPreferencesCreateWithoutUserInput = {
     id?: string
     weeklySchedule: JsonNullValueInput | InputJsonValue
@@ -12394,6 +14209,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
     hourlyRates?: HourlyRateCreateNestedManyWithoutProviderInput
   }
 
@@ -12408,6 +14224,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
     hourlyRates?: HourlyRateUncheckedCreateNestedManyWithoutProviderInput
   }
 
@@ -12438,13 +14255,13 @@ export namespace Prisma {
     NOT?: BillHistoryScalarWhereInput | BillHistoryScalarWhereInput[]
     id?: StringFilter<"BillHistory"> | string
     userId?: StringFilter<"BillHistory"> | string
-    month?: IntFilter<"BillHistory"> | number
-    year?: IntFilter<"BillHistory"> | number
     billTotal?: DecimalFilter<"BillHistory"> | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFilter<"BillHistory"> | Date | string
+    locationId?: StringNullableFilter<"BillHistory"> | string | null
+    month?: IntFilter<"BillHistory"> | number
     usageKwh?: IntNullableFilter<"BillHistory"> | number | null
     utility?: StringNullableFilter<"BillHistory"> | string | null
-    locationId?: StringNullableFilter<"BillHistory"> | string | null
-    createdDate?: DateTimeFilter<"BillHistory"> | Date | string
+    year?: IntFilter<"BillHistory"> | number
   }
 
   export type DeviceUpsertWithWhereUniqueWithoutUserInput = {
@@ -12507,6 +14324,41 @@ export namespace Prisma {
     name?: StringFilter<"Location"> | string
   }
 
+  export type SavedScheduleUpsertWithWhereUniqueWithoutUserInput = {
+    where: SavedScheduleWhereUniqueInput
+    update: XOR<SavedScheduleUpdateWithoutUserInput, SavedScheduleUncheckedUpdateWithoutUserInput>
+    create: XOR<SavedScheduleCreateWithoutUserInput, SavedScheduleUncheckedCreateWithoutUserInput>
+  }
+
+  export type SavedScheduleUpdateWithWhereUniqueWithoutUserInput = {
+    where: SavedScheduleWhereUniqueInput
+    data: XOR<SavedScheduleUpdateWithoutUserInput, SavedScheduleUncheckedUpdateWithoutUserInput>
+  }
+
+  export type SavedScheduleUpdateManyWithWhereWithoutUserInput = {
+    where: SavedScheduleScalarWhereInput
+    data: XOR<SavedScheduleUpdateManyMutationInput, SavedScheduleUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type SavedScheduleScalarWhereInput = {
+    AND?: SavedScheduleScalarWhereInput | SavedScheduleScalarWhereInput[]
+    OR?: SavedScheduleScalarWhereInput[]
+    NOT?: SavedScheduleScalarWhereInput | SavedScheduleScalarWhereInput[]
+    id?: StringFilter<"SavedSchedule"> | string
+    userId?: StringFilter<"SavedSchedule"> | string
+    scheduleDate?: DateTimeFilter<"SavedSchedule"> | Date | string
+    dayOfWeek?: StringFilter<"SavedSchedule"> | string
+    scheduleJson?: JsonFilter<"SavedSchedule">
+    appliancesJson?: JsonNullableFilter<"SavedSchedule">
+    optimizedCost?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFilter<"SavedSchedule"> | Decimal | DecimalJsLike | number | string
+    status?: StringFilter<"SavedSchedule"> | string
+    followedAt?: DateTimeNullableFilter<"SavedSchedule"> | Date | string | null
+    createdAt?: DateTimeFilter<"SavedSchedule"> | Date | string
+  }
+
   export type UserPreferencesUpsertWithoutUserInput = {
     update: XOR<UserPreferencesUpdateWithoutUserInput, UserPreferencesUncheckedUpdateWithoutUserInput>
     create: XOR<UserPreferencesCreateWithoutUserInput, UserPreferencesUncheckedCreateWithoutUserInput>
@@ -12554,6 +14406,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyRates?: HourlyRateUpdateManyWithoutProviderNestedInput
   }
 
@@ -12568,6 +14421,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
     hourlyRates?: HourlyRateUncheckedUpdateManyWithoutProviderNestedInput
   }
 
@@ -12615,6 +14469,7 @@ export namespace Prisma {
     utilityProv?: string | null
     billHistory?: BillHistoryCreateNestedManyWithoutUserInput
     devices?: DeviceCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesCreateNestedOneWithoutUserInput
     selectedProvider?: UtilityProviderCreateNestedOneWithoutUsersInput
   }
@@ -12626,6 +14481,7 @@ export namespace Prisma {
     selectedProviderId?: string | null
     billHistory?: BillHistoryUncheckedCreateNestedManyWithoutUserInput
     devices?: DeviceUncheckedCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleUncheckedCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   }
 
@@ -12667,6 +14523,7 @@ export namespace Prisma {
     utilityProv?: NullableStringFieldUpdateOperationsInput | string | null
     billHistory?: BillHistoryUpdateManyWithoutUserNestedInput
     devices?: DeviceUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUpdateOneWithoutUserNestedInput
     selectedProvider?: UtilityProviderUpdateOneWithoutUsersNestedInput
   }
@@ -12678,6 +14535,7 @@ export namespace Prisma {
     selectedProviderId?: NullableStringFieldUpdateOperationsInput | string | null
     billHistory?: BillHistoryUncheckedUpdateManyWithoutUserNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUncheckedUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   }
 
@@ -12706,6 +14564,7 @@ export namespace Prisma {
     utilityProv?: string | null
     billHistory?: BillHistoryCreateNestedManyWithoutUserInput
     locations?: LocationCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesCreateNestedOneWithoutUserInput
     selectedProvider?: UtilityProviderCreateNestedOneWithoutUsersInput
   }
@@ -12717,6 +14576,7 @@ export namespace Prisma {
     selectedProviderId?: string | null
     billHistory?: BillHistoryUncheckedCreateNestedManyWithoutUserInput
     locations?: LocationUncheckedCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleUncheckedCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   }
 
@@ -12767,6 +14627,7 @@ export namespace Prisma {
     utilityProv?: NullableStringFieldUpdateOperationsInput | string | null
     billHistory?: BillHistoryUpdateManyWithoutUserNestedInput
     locations?: LocationUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUpdateOneWithoutUserNestedInput
     selectedProvider?: UtilityProviderUpdateOneWithoutUsersNestedInput
   }
@@ -12778,6 +14639,7 @@ export namespace Prisma {
     selectedProviderId?: NullableStringFieldUpdateOperationsInput | string | null
     billHistory?: BillHistoryUncheckedUpdateManyWithoutUserNestedInput
     locations?: LocationUncheckedUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUncheckedUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   }
 
@@ -12787,6 +14649,7 @@ export namespace Prisma {
     utilityProv?: string | null
     devices?: DeviceCreateNestedManyWithoutUserInput
     locations?: LocationCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesCreateNestedOneWithoutUserInput
     selectedProvider?: UtilityProviderCreateNestedOneWithoutUsersInput
   }
@@ -12798,6 +14661,7 @@ export namespace Prisma {
     selectedProviderId?: string | null
     devices?: DeviceUncheckedCreateNestedManyWithoutUserInput
     locations?: LocationUncheckedCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleUncheckedCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   }
 
@@ -12823,6 +14687,7 @@ export namespace Prisma {
     utilityProv?: NullableStringFieldUpdateOperationsInput | string | null
     devices?: DeviceUpdateManyWithoutUserNestedInput
     locations?: LocationUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUpdateOneWithoutUserNestedInput
     selectedProvider?: UtilityProviderUpdateOneWithoutUsersNestedInput
   }
@@ -12834,6 +14699,7 @@ export namespace Prisma {
     selectedProviderId?: NullableStringFieldUpdateOperationsInput | string | null
     devices?: DeviceUncheckedUpdateManyWithoutUserNestedInput
     locations?: LocationUncheckedUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUncheckedUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   }
 
@@ -12876,6 +14742,7 @@ export namespace Prisma {
     billHistory?: BillHistoryCreateNestedManyWithoutUserInput
     devices?: DeviceCreateNestedManyWithoutUserInput
     locations?: LocationCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesCreateNestedOneWithoutUserInput
   }
 
@@ -12886,6 +14753,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUncheckedCreateNestedManyWithoutUserInput
     devices?: DeviceUncheckedCreateNestedManyWithoutUserInput
     locations?: LocationUncheckedCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleUncheckedCreateNestedManyWithoutUserInput
     preferences?: UserPreferencesUncheckedCreateNestedOneWithoutUserInput
   }
 
@@ -12963,6 +14831,7 @@ export namespace Prisma {
     billHistory?: BillHistoryCreateNestedManyWithoutUserInput
     devices?: DeviceCreateNestedManyWithoutUserInput
     locations?: LocationCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleCreateNestedManyWithoutUserInput
     selectedProvider?: UtilityProviderCreateNestedOneWithoutUsersInput
   }
 
@@ -12974,6 +14843,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUncheckedCreateNestedManyWithoutUserInput
     devices?: DeviceUncheckedCreateNestedManyWithoutUserInput
     locations?: LocationUncheckedCreateNestedManyWithoutUserInput
+    savedSchedules?: SavedScheduleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPreferencesInput = {
@@ -12999,6 +14869,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUpdateManyWithoutUserNestedInput
     devices?: DeviceUpdateManyWithoutUserNestedInput
     locations?: LocationUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUpdateManyWithoutUserNestedInput
     selectedProvider?: UtilityProviderUpdateOneWithoutUsersNestedInput
   }
 
@@ -13010,6 +14881,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUncheckedUpdateManyWithoutUserNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutUserNestedInput
     locations?: LocationUncheckedUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UtilityProviderCreateWithoutHourlyRatesInput = {
@@ -13023,6 +14895,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
     users?: UserCreateNestedManyWithoutSelectedProviderInput
   }
 
@@ -13037,6 +14910,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: Date | string
+    service_type?: string | null
     users?: UserUncheckedCreateNestedManyWithoutSelectedProviderInput
   }
 
@@ -13067,6 +14941,7 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
     users?: UserUpdateManyWithoutSelectedProviderNestedInput
   }
 
@@ -13081,18 +14956,79 @@ export namespace Prisma {
     weekendScheduleJson?: NullableJsonNullValueInput | InputJsonValue
     fuelAdjustmentsJson?: NullableJsonNullValueInput | InputJsonValue
     fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    service_type?: NullableStringFieldUpdateOperationsInput | string | null
     users?: UserUncheckedUpdateManyWithoutSelectedProviderNestedInput
+  }
+
+  export type UserCreateWithoutSavedSchedulesInput = {
+    id: string
+    email: string
+    utilityProv?: string | null
+    billHistory?: BillHistoryCreateNestedManyWithoutUserInput
+    devices?: DeviceCreateNestedManyWithoutUserInput
+    locations?: LocationCreateNestedManyWithoutUserInput
+    preferences?: UserPreferencesCreateNestedOneWithoutUserInput
+    selectedProvider?: UtilityProviderCreateNestedOneWithoutUsersInput
+  }
+
+  export type UserUncheckedCreateWithoutSavedSchedulesInput = {
+    id: string
+    email: string
+    utilityProv?: string | null
+    selectedProviderId?: string | null
+    billHistory?: BillHistoryUncheckedCreateNestedManyWithoutUserInput
+    devices?: DeviceUncheckedCreateNestedManyWithoutUserInput
+    locations?: LocationUncheckedCreateNestedManyWithoutUserInput
+    preferences?: UserPreferencesUncheckedCreateNestedOneWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutSavedSchedulesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSavedSchedulesInput, UserUncheckedCreateWithoutSavedSchedulesInput>
+  }
+
+  export type UserUpsertWithoutSavedSchedulesInput = {
+    update: XOR<UserUpdateWithoutSavedSchedulesInput, UserUncheckedUpdateWithoutSavedSchedulesInput>
+    create: XOR<UserCreateWithoutSavedSchedulesInput, UserUncheckedCreateWithoutSavedSchedulesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSavedSchedulesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSavedSchedulesInput, UserUncheckedUpdateWithoutSavedSchedulesInput>
+  }
+
+  export type UserUpdateWithoutSavedSchedulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    utilityProv?: NullableStringFieldUpdateOperationsInput | string | null
+    billHistory?: BillHistoryUpdateManyWithoutUserNestedInput
+    devices?: DeviceUpdateManyWithoutUserNestedInput
+    locations?: LocationUpdateManyWithoutUserNestedInput
+    preferences?: UserPreferencesUpdateOneWithoutUserNestedInput
+    selectedProvider?: UtilityProviderUpdateOneWithoutUsersNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSavedSchedulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    utilityProv?: NullableStringFieldUpdateOperationsInput | string | null
+    selectedProviderId?: NullableStringFieldUpdateOperationsInput | string | null
+    billHistory?: BillHistoryUncheckedUpdateManyWithoutUserNestedInput
+    devices?: DeviceUncheckedUpdateManyWithoutUserNestedInput
+    locations?: LocationUncheckedUpdateManyWithoutUserNestedInput
+    preferences?: UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type BillHistoryCreateManyUserInput = {
     id?: string
-    month: number
-    year: number
     billTotal: Decimal | DecimalJsLike | number | string
+    createdDate?: Date | string
+    locationId?: string | null
+    month: number
     usageKwh?: number | null
     utility?: string | null
-    locationId?: string | null
-    createdDate?: Date | string
+    year: number
   }
 
   export type DeviceCreateManyUserInput = {
@@ -13115,37 +15051,52 @@ export namespace Prisma {
     name?: string
   }
 
+  export type SavedScheduleCreateManyUserInput = {
+    id?: string
+    scheduleDate: Date | string
+    dayOfWeek: string
+    scheduleJson: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost: Decimal | DecimalJsLike | number | string
+    typicalCost: Decimal | DecimalJsLike | number | string
+    carbonOptimized: Decimal | DecimalJsLike | number | string
+    carbonTypical: Decimal | DecimalJsLike | number | string
+    status?: string
+    followedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
   export type BillHistoryUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
   }
 
   export type BillHistoryUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
   }
 
   export type BillHistoryUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    month?: IntFieldUpdateOperationsInput | number
-    year?: IntFieldUpdateOperationsInput | number
     billTotal?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    locationId?: NullableStringFieldUpdateOperationsInput | string | null
+    month?: IntFieldUpdateOperationsInput | number
     usageKwh?: NullableIntFieldUpdateOperationsInput | number | null
     utility?: NullableStringFieldUpdateOperationsInput | string | null
-    locationId?: NullableStringFieldUpdateOperationsInput | string | null
-    createdDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    year?: IntFieldUpdateOperationsInput | number
   }
 
   export type DeviceUpdateWithoutUserInput = {
@@ -13208,6 +15159,51 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     zip?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type SavedScheduleUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavedScheduleUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavedScheduleUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduleDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dayOfWeek?: StringFieldUpdateOperationsInput | string
+    scheduleJson?: JsonNullValueInput | InputJsonValue
+    appliancesJson?: NullableJsonNullValueInput | InputJsonValue
+    optimizedCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    typicalCost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonOptimized?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    carbonTypical?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    status?: StringFieldUpdateOperationsInput | string
+    followedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DeviceCreateManyLocationInput = {
@@ -13323,6 +15319,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUpdateManyWithoutUserNestedInput
     devices?: DeviceUpdateManyWithoutUserNestedInput
     locations?: LocationUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUpdateOneWithoutUserNestedInput
   }
 
@@ -13333,6 +15330,7 @@ export namespace Prisma {
     billHistory?: BillHistoryUncheckedUpdateManyWithoutUserNestedInput
     devices?: DeviceUncheckedUpdateManyWithoutUserNestedInput
     locations?: LocationUncheckedUpdateManyWithoutUserNestedInput
+    savedSchedules?: SavedScheduleUncheckedUpdateManyWithoutUserNestedInput
     preferences?: UserPreferencesUncheckedUpdateOneWithoutUserNestedInput
   }
 

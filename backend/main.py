@@ -32,6 +32,13 @@ from database import (
     create_bill as db_create_bill,
     update_bill as db_update_bill,
     delete_bill as db_delete_bill,
+    ensure_saved_schedules_table,
+    save_schedule as db_save_schedule,
+    get_today_schedule as db_get_today_schedule,
+    get_pending_schedules as db_get_pending_schedules,
+    submit_schedule_feedback as db_submit_schedule_feedback,
+    get_schedule_history as db_get_schedule_history,
+    get_savings_summary as db_get_savings_summary,
 )
 from daily_optimizer import run_optimization_hybrid
 from weekly_scheduler import find_optimal_day_for_appliances
@@ -145,6 +152,11 @@ except Exception as e:
 
 security = HTTPBearer(auto_error=False)
 app = FastAPI(title="API")
+
+
+@app.on_event("startup")
+async def _startup():
+    await ensure_saved_schedules_table()
 
 app.add_middleware(
     CORSMiddleware,
@@ -926,4 +938,312 @@ async def set_preferences_endpoint(request: Request, userinfo: dict = Depends(_r
         "weeklySchedule": row["weekly_schedule"],
         "tempAwake": row["temp_awake"],
         "tempSleeping": row["temp_sleeping"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Saved schedules — auto-generate, feedback, history, savings
+# ---------------------------------------------------------------------------
+
+# Carbon intensity by hour of day (kg CO2 / kWh).
+# Off-peak hours use more baseload (nuclear/renewables), peak hours use gas peakers.
+def _carbon_intensity(hour: int) -> float:
+    if hour < 6 or hour >= 21:
+        return 0.32   # off-peak: mostly baseload
+    if hour < 9 or hour >= 17:
+        return 0.42   # shoulder
+    return 0.52       # peak: gas peakers online
+
+# Default 7x24 TOU pricing matching the frontend
+_DEFAULT_PRICES_BY_DAY = []
+for d in range(7):
+    weekend = d in (5, 6)
+    day_prices = []
+    for h in range(24):
+        if h < 6:
+            day_prices.append(0.11 if weekend else 0.12)
+        elif h < 9:
+            day_prices.append(0.14 if weekend else 0.15)
+        elif h < 14:
+            day_prices.append(0.16 if weekend else 0.18)
+        elif h < 21:
+            day_prices.append(0.17 if weekend else 0.28)
+        else:
+            day_prices.append(0.13 if weekend else 0.15)
+    _DEFAULT_PRICES_BY_DAY.append(day_prices)
+
+_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+def _build_optimizer_prefs_from_saved(prefs: dict, day_name: str) -> dict:
+    """Convert saved DB preferences into optimizer user_preferences dict."""
+    ws = prefs.get("weekly_schedule") or {}
+    day_key = day_name.lower()
+    day = ws.get(day_key, {})
+
+    def _time_to_hour(s):
+        return int((s or "00:00").split(":")[0])
+
+    def _hours_in_range(start, end):
+        hrs = []
+        if end < start:
+            hrs.extend(range(start, 24))
+            hrs.extend(range(0, end + 1))
+        else:
+            hrs.extend(range(start, end + 1))
+        return hrs
+
+    home_start = _time_to_hour(day.get("homeStart", "17:00"))
+    home_end = _time_to_hour(day.get("homeEnd", "08:00"))
+    awake_start = _time_to_hour(day.get("awakeStart", "06:00"))
+    awake_end = _time_to_hour(day.get("awakeEnd", "23:00"))
+
+    return {
+        "availability": _hours_in_range(home_start, home_end),
+        "time_awake": _hours_in_range(awake_start, awake_end),
+        "thermostat_temp_home": prefs.get("temp_awake", 72),
+        "thermostat_temp_away": 78,
+        "hvac_lead_time": 1,
+    }
+
+
+def _compute_typical_cost_and_carbon(appliances: list[dict], prices: list[float]) -> tuple[float, float]:
+    """
+    Compute typical (unoptimized) cost and carbon.
+    Typical = each appliance runs during "convenient" peak hours (2-9 PM).
+    Returns (typical_cost, typical_carbon).
+    """
+    typical_cost = 0.0
+    typical_carbon = 0.0
+
+    peak_hours = list(range(14, 21))  # 2 PM - 9 PM
+
+    for app in appliances:
+        power = app.get("power", 0.0)
+        app_type = app.get("type", "intermittent")
+
+        if app_type == "hvac":
+            # HVAC runs continuously regardless — same cost for typical
+            for h in range(24):
+                typical_cost += power * prices[h]
+                typical_carbon += power * _carbon_intensity(h)
+        elif app_type == "cycle":
+            duration = app.get("duration", 1)
+            # Typical: start at 5 PM (hour 17) for the duration
+            start = 17
+            for offset in range(duration):
+                h = (start + offset) % 24
+                typical_cost += power * prices[h]
+                typical_carbon += power * _carbon_intensity(h)
+        else:
+            # Intermittent: run during peak hours for max_hours
+            max_h = app.get("max_hours", 4)
+            hours_to_run = peak_hours[:max_h]
+            for h in hours_to_run:
+                typical_cost += power * prices[h]
+                typical_carbon += power * _carbon_intensity(h)
+
+    return typical_cost, typical_carbon
+
+
+def _compute_optimized_carbon(schedule: list[dict], appliances: list[dict]) -> float:
+    """Compute carbon for the optimized schedule."""
+    carbon = 0.0
+    app_map = {a["name"]: a for a in appliances}
+    for item in schedule:
+        app = app_map.get(item["appliance"], {})
+        power = app.get("power", 0.0)
+        run_times = item.get("run_times", [])
+        if run_times == "continuous":
+            for h in range(24):
+                carbon += power * _carbon_intensity(h)
+        elif isinstance(run_times, list):
+            for h in run_times:
+                carbon += power * _carbon_intensity(h)
+    return carbon
+
+
+def _schedule_response(row: dict) -> dict:
+    return {
+        "id": row["schedule_id"],
+        "userId": row["user_id"],
+        "scheduleDate": row["schedule_date"].isoformat() if hasattr(row["schedule_date"], "isoformat") else str(row["schedule_date"]),
+        "dayOfWeek": row["day_of_week"],
+        "scheduleJson": row.get("schedule_json"),
+        "appliancesJson": row.get("appliances_json"),
+        "optimizedCost": float(row["optimized_cost"]),
+        "typicalCost": float(row["typical_cost"]),
+        "costSavings": round(float(row["typical_cost"]) - float(row["optimized_cost"]), 4),
+        "carbonOptimized": float(row["carbon_optimized"]),
+        "carbonTypical": float(row["carbon_typical"]),
+        "carbonSaved": round(float(row["carbon_typical"]) - float(row["carbon_optimized"]), 4),
+        "status": row["status"],
+        "followedAt": row["followed_at"].isoformat() if row.get("followed_at") and hasattr(row["followed_at"], "isoformat") else None,
+        "createdAt": row["created_at"].isoformat() if hasattr(row["created_at"], "isoformat") else str(row["created_at"]),
+    }
+
+
+@app.post("/api/schedules/generate")
+async def generate_today_schedule(
+    request: Request,
+    userinfo: dict = Depends(_require_user),
+):
+    """
+    Auto-generate today's optimized schedule. If one already exists for today,
+    return it without re-running the optimizer (unless force=true).
+    """
+    import json as _json
+    from datetime import date, datetime
+
+    user_id = userinfo["sub"]
+    body = await request.json() if request.headers.get("content-length", "0") != "0" else {}
+    force = body.get("force", False)
+    today_str = date.today().isoformat()
+    today_name = _DAY_NAMES[date.today().weekday()]
+
+    if not force:
+        existing = await db_get_today_schedule(user_id, today_str)
+        if existing:
+            return _schedule_response(existing)
+
+    rows = await get_devices_by_user(user_id)
+    if not rows:
+        raise HTTPException(status_code=404, detail="No devices found — add devices first")
+
+    prefs = await db_get_user_preferences(user_id)
+    if prefs:
+        user_preferences = _build_optimizer_prefs_from_saved(prefs, today_name)
+    else:
+        user_preferences = {
+            "availability": [0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 20, 21, 22, 23],
+            "time_awake": list(range(7, 24)),
+            "thermostat_temp_home": 72,
+            "thermostat_temp_away": 78,
+            "hvac_lead_time": 1,
+        }
+
+    appliances = [device_to_appliance(r) for r in rows]
+    day_index = date.today().weekday()
+    prices = _DEFAULT_PRICES_BY_DAY[day_index]
+
+    result = run_optimization_hybrid(
+        appliances,
+        _DEFAULT_PRICES_BY_DAY,
+        today_name,
+        user_preferences,
+    )
+
+    if result.get("status") != "OPTIMAL":
+        raise HTTPException(status_code=500, detail=f"Optimization failed: {result.get('status')}")
+
+    schedule = result["schedule"]
+    optimized_cost = result["total_estimated_cost"]
+
+    typical_cost, typical_carbon = _compute_typical_cost_and_carbon(appliances, prices)
+    optimized_carbon = _compute_optimized_carbon(schedule, appliances)
+
+    saved = await db_save_schedule(
+        user_id=user_id,
+        schedule_date=today_str,
+        day_of_week=today_name,
+        schedule_json=_json.dumps(schedule),
+        appliances_json=_json.dumps(appliances),
+        optimized_cost=round(optimized_cost, 4),
+        typical_cost=round(typical_cost, 4),
+        carbon_optimized=round(optimized_carbon, 4),
+        carbon_typical=round(typical_carbon, 4),
+    )
+
+    if not saved:
+        raise HTTPException(status_code=500, detail="Failed to save schedule")
+
+    return _schedule_response(saved)
+
+
+@app.get("/api/schedules/today")
+async def get_today_schedule_endpoint(userinfo: dict = Depends(_require_user)):
+    """Get today's saved schedule (if it exists)."""
+    from datetime import date
+    user_id = userinfo["sub"]
+    today_str = date.today().isoformat()
+    row = await db_get_today_schedule(user_id, today_str)
+    if not row:
+        return None
+    return _schedule_response(row)
+
+
+@app.get("/api/schedules/pending")
+async def get_pending_schedules_endpoint(userinfo: dict = Depends(_require_user)):
+    """Get schedules that haven't received feedback yet (before today)."""
+    from datetime import date
+    user_id = userinfo["sub"]
+    today_str = date.today().isoformat()
+    rows = await db_get_pending_schedules(user_id, today_str)
+    return [_schedule_response(r) for r in rows]
+
+
+@app.post("/api/schedules/{schedule_id}/feedback")
+async def submit_feedback_endpoint(
+    schedule_id: str,
+    request: Request,
+    userinfo: dict = Depends(_require_user),
+):
+    """Submit whether the user followed a specific schedule."""
+    body = await request.json()
+    followed = body.get("followed")
+    if followed is None:
+        raise HTTPException(status_code=400, detail="'followed' (boolean) is required")
+    user_id = userinfo["sub"]
+    row = await db_submit_schedule_feedback(schedule_id, user_id, bool(followed))
+    if not row:
+        raise HTTPException(status_code=404, detail="Schedule not found or access denied")
+    return _schedule_response(row)
+
+
+@app.get("/api/schedules/history")
+async def get_schedule_history_endpoint(
+    limit: int = 30,
+    userinfo: dict = Depends(_require_user),
+):
+    """Get schedule history for the user."""
+    user_id = userinfo["sub"]
+    rows = await db_get_schedule_history(user_id, limit)
+    return [
+        {
+            "id": r["schedule_id"],
+            "scheduleDate": r["schedule_date"].isoformat() if hasattr(r["schedule_date"], "isoformat") else str(r["schedule_date"]),
+            "dayOfWeek": r["day_of_week"],
+            "optimizedCost": float(r["optimized_cost"]),
+            "typicalCost": float(r["typical_cost"]),
+            "costSavings": round(float(r["typical_cost"]) - float(r["optimized_cost"]), 4),
+            "carbonOptimized": float(r["carbon_optimized"]),
+            "carbonTypical": float(r["carbon_typical"]),
+            "carbonSaved": round(float(r["carbon_typical"]) - float(r["carbon_optimized"]), 4),
+            "status": r["status"],
+            "followedAt": r["followed_at"].isoformat() if r.get("followed_at") and hasattr(r["followed_at"], "isoformat") else None,
+        }
+        for r in rows
+    ]
+
+
+@app.get("/api/schedules/savings")
+async def get_savings_summary_endpoint(userinfo: dict = Depends(_require_user)):
+    """Get aggregate savings summary for the user."""
+    user_id = userinfo["sub"]
+    s = await db_get_savings_summary(user_id)
+    return {
+        "daysFollowed": int(s["days_followed"]),
+        "daysNotFollowed": int(s["days_not_followed"]),
+        "daysPending": int(s["days_pending"]),
+        "totalSchedules": int(s["total_schedules"]),
+        "totalSavings": round(float(s["total_savings"]), 2),
+        "totalCarbonSaved": round(float(s["total_carbon_saved"]), 4),
+        "totalTypicalCost": round(float(s["total_typical_cost"]), 2),
+        "totalOptimizedCost": round(float(s["total_optimized_cost"]), 2),
+        "avgDailySavings": round(float(s["avg_daily_savings"]), 2),
+        "avgDailyCarbonSaved": round(float(s["avg_daily_carbon_saved"]), 4),
+        "complianceRate": round(
+            int(s["days_followed"]) / max(int(s["days_followed"]) + int(s["days_not_followed"]), 1) * 100,
+            1,
+        ),
     }

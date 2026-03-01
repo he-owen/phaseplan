@@ -5,6 +5,7 @@ import os
 import logging
 import ssl
 import uuid
+from datetime import date as _date_type
 
 _use_ssl = os.getenv("DATABASE_SSL", "true").lower() in ("1", "true", "yes")
 _verify_ssl = os.getenv("DATABASE_SSL_VERIFY", "false").lower() in ("1", "true", "yes")
@@ -585,3 +586,222 @@ async def get_user_preferences(user_id: str) -> dict | None:
         )
         row = result.mappings().first()
         return dict(row) if row else None
+
+
+# ---------------------------------------------------------------------------
+# Saved schedules
+# ---------------------------------------------------------------------------
+
+async def ensure_saved_schedules_table():
+    """Create the saved_schedules table if it doesn't exist."""
+    try:
+        async with async_session() as session:
+            await session.execute(text("""
+                CREATE TABLE IF NOT EXISTS saved_schedules (
+                    schedule_id      TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+                    user_id          TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    schedule_date    DATE NOT NULL,
+                    day_of_week      TEXT NOT NULL,
+                    schedule_json    JSONB NOT NULL,
+                    appliances_json  JSONB,
+                    optimized_cost   NUMERIC(12,4) NOT NULL DEFAULT 0,
+                    typical_cost     NUMERIC(12,4) NOT NULL DEFAULT 0,
+                    carbon_optimized NUMERIC(10,4) NOT NULL DEFAULT 0,
+                    carbon_typical   NUMERIC(10,4) NOT NULL DEFAULT 0,
+                    status           TEXT NOT NULL DEFAULT 'pending',
+                    followed_at      TIMESTAMPTZ,
+                    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE(user_id, schedule_date)
+                )
+            """))
+            await session.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_saved_schedules_user_status ON saved_schedules(user_id, status)"
+            ))
+            await session.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_saved_schedules_user_date ON saved_schedules(user_id, schedule_date)"
+            ))
+            await session.commit()
+    except Exception as e:
+        logger.warning("ensure_saved_schedules_table failed: %s", e, exc_info=True)
+
+
+def _to_date(val) -> _date_type:
+    """Convert a string 'YYYY-MM-DD' or date object to a datetime.date."""
+    if isinstance(val, _date_type):
+        return val
+    return _date_type.fromisoformat(str(val))
+
+
+async def save_schedule(
+    user_id: str,
+    schedule_date: str,
+    day_of_week: str,
+    schedule_json: str,
+    appliances_json: str | None,
+    optimized_cost: float,
+    typical_cost: float,
+    carbon_optimized: float,
+    carbon_typical: float,
+) -> dict | None:
+    schedule_id = str(uuid.uuid4())
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                text("""
+                    INSERT INTO saved_schedules
+                        (schedule_id, user_id, schedule_date, day_of_week, schedule_json,
+                         appliances_json, optimized_cost, typical_cost,
+                         carbon_optimized, carbon_typical, status)
+                    VALUES
+                        (:schedule_id, :user_id, :schedule_date, :day_of_week,
+                         CAST(:schedule_json AS jsonb), CAST(:appliances_json AS jsonb),
+                         :optimized_cost, :typical_cost, :carbon_optimized, :carbon_typical, 'pending')
+                    ON CONFLICT (user_id, schedule_date) DO UPDATE SET
+                        day_of_week = EXCLUDED.day_of_week,
+                        schedule_json = EXCLUDED.schedule_json,
+                        appliances_json = EXCLUDED.appliances_json,
+                        optimized_cost = EXCLUDED.optimized_cost,
+                        typical_cost = EXCLUDED.typical_cost,
+                        carbon_optimized = EXCLUDED.carbon_optimized,
+                        carbon_typical = EXCLUDED.carbon_typical,
+                        status = CASE
+                            WHEN saved_schedules.status IN ('followed', 'not_followed') THEN saved_schedules.status
+                            ELSE 'pending'
+                        END,
+                        created_at = NOW()
+                    RETURNING schedule_id, user_id, schedule_date, day_of_week,
+                              schedule_json, appliances_json,
+                              optimized_cost, typical_cost,
+                              carbon_optimized, carbon_typical,
+                              status, followed_at, created_at
+                """),
+                {
+                    "schedule_id": schedule_id,
+                    "user_id": user_id,
+                    "schedule_date": _to_date(schedule_date),
+                    "day_of_week": day_of_week,
+                    "schedule_json": schedule_json,
+                    "appliances_json": appliances_json,
+                    "optimized_cost": optimized_cost,
+                    "typical_cost": typical_cost,
+                    "carbon_optimized": carbon_optimized,
+                    "carbon_typical": carbon_typical,
+                },
+            )
+            row = result.mappings().first()
+            await session.commit()
+            return dict(row) if row else None
+    except Exception as e:
+        logger.warning("Save schedule failed: %s", e, exc_info=True)
+        return None
+
+
+async def get_today_schedule(user_id: str, today: str) -> dict | None:
+    async with async_session() as session:
+        result = await session.execute(
+            text("""
+                SELECT schedule_id, user_id, schedule_date, day_of_week,
+                       schedule_json, appliances_json,
+                       optimized_cost, typical_cost,
+                       carbon_optimized, carbon_typical,
+                       status, followed_at, created_at
+                FROM saved_schedules
+                WHERE user_id = :user_id AND schedule_date = :today
+            """),
+            {"user_id": user_id, "today": _to_date(today)},
+        )
+        row = result.mappings().first()
+        return dict(row) if row else None
+
+
+async def get_pending_schedules(user_id: str, before_date: str) -> list[dict]:
+    """Get all schedules that haven't received feedback yet (before the given date)."""
+    async with async_session() as session:
+        result = await session.execute(
+            text("""
+                SELECT schedule_id, user_id, schedule_date, day_of_week,
+                       schedule_json, appliances_json,
+                       optimized_cost, typical_cost,
+                       carbon_optimized, carbon_typical,
+                       status, followed_at, created_at
+                FROM saved_schedules
+                WHERE user_id = :user_id AND status = 'pending'
+                  AND schedule_date < :before_date
+                ORDER BY schedule_date DESC
+            """),
+            {"user_id": user_id, "before_date": _to_date(before_date)},
+        )
+        return [dict(r) for r in result.mappings().all()]
+
+
+async def submit_schedule_feedback(schedule_id: str, user_id: str, followed: bool) -> dict | None:
+    new_status = "followed" if followed else "not_followed"
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                text("""
+                    UPDATE saved_schedules
+                    SET status = :status, followed_at = NOW()
+                    WHERE schedule_id = :schedule_id AND user_id = :user_id
+                    RETURNING schedule_id, user_id, schedule_date, day_of_week,
+                              schedule_json, appliances_json,
+                              optimized_cost, typical_cost,
+                              carbon_optimized, carbon_typical,
+                              status, followed_at, created_at
+                """),
+                {"schedule_id": schedule_id, "user_id": user_id, "status": new_status},
+            )
+            row = result.mappings().first()
+            await session.commit()
+            return dict(row) if row else None
+    except Exception as e:
+        logger.warning("Submit schedule feedback failed: %s", e, exc_info=True)
+        return None
+
+
+async def get_schedule_history(user_id: str, limit: int = 30) -> list[dict]:
+    async with async_session() as session:
+        result = await session.execute(
+            text("""
+                SELECT schedule_id, user_id, schedule_date, day_of_week,
+                       optimized_cost, typical_cost,
+                       carbon_optimized, carbon_typical,
+                       status, followed_at, created_at
+                FROM saved_schedules
+                WHERE user_id = :user_id
+                ORDER BY schedule_date DESC
+                LIMIT :limit
+            """),
+            {"user_id": user_id, "limit": limit},
+        )
+        return [dict(r) for r in result.mappings().all()]
+
+
+async def get_savings_summary(user_id: str) -> dict:
+    """Aggregate savings for schedules the user actually followed."""
+    async with async_session() as session:
+        result = await session.execute(
+            text("""
+                SELECT
+                    COUNT(*) FILTER (WHERE status = 'followed') AS days_followed,
+                    COUNT(*) FILTER (WHERE status = 'not_followed') AS days_not_followed,
+                    COUNT(*) FILTER (WHERE status = 'pending') AS days_pending,
+                    COUNT(*) AS total_schedules,
+                    COALESCE(SUM(typical_cost - optimized_cost) FILTER (WHERE status = 'followed'), 0) AS total_savings,
+                    COALESCE(SUM(carbon_typical - carbon_optimized) FILTER (WHERE status = 'followed'), 0) AS total_carbon_saved,
+                    COALESCE(SUM(typical_cost) FILTER (WHERE status = 'followed'), 0) AS total_typical_cost,
+                    COALESCE(SUM(optimized_cost) FILTER (WHERE status = 'followed'), 0) AS total_optimized_cost,
+                    COALESCE(AVG(typical_cost - optimized_cost) FILTER (WHERE status = 'followed'), 0) AS avg_daily_savings,
+                    COALESCE(AVG(carbon_typical - carbon_optimized) FILTER (WHERE status = 'followed'), 0) AS avg_daily_carbon_saved
+                FROM saved_schedules
+                WHERE user_id = :user_id
+            """),
+            {"user_id": user_id},
+        )
+        row = result.mappings().first()
+        return dict(row) if row else {
+            "days_followed": 0, "days_not_followed": 0, "days_pending": 0,
+            "total_schedules": 0, "total_savings": 0, "total_carbon_saved": 0,
+            "total_typical_cost": 0, "total_optimized_cost": 0,
+            "avg_daily_savings": 0, "avg_daily_carbon_saved": 0,
+        }

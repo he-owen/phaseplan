@@ -23,6 +23,12 @@ const PageContext = React.createContext({
   setWeeklyScheduleResults: () => {},
   searchHighlight: null,
   setSearchHighlight: () => {},
+  todaySchedule: null,
+  setTodaySchedule: () => {},
+  savingsSummary: null,
+  setSavingsSummary: () => {},
+  pendingSchedules: [],
+  setPendingSchedules: () => {},
 });
 
 export function PageProvider({ children }) {
@@ -30,8 +36,10 @@ export function PageProvider({ children }) {
   const navigate = useNavigate();
   const [optimizationResults, setOptimizationResults] = React.useState(null);
   const [weeklyScheduleResults, setWeeklyScheduleResults] = React.useState(null);
-  // { scrollToId: string, query: string } – set by Search, cleared after scroll
   const [searchHighlight, setSearchHighlight] = React.useState(null);
+  const [todaySchedule, setTodaySchedule] = React.useState(null);
+  const [savingsSummary, setSavingsSummary] = React.useState(null);
+  const [pendingSchedules, setPendingSchedules] = React.useState([]);
 
   const currentPage = PATH_TO_PAGE[location.pathname] || 'Home';
 
@@ -53,8 +61,15 @@ export function PageProvider({ children }) {
       setWeeklyScheduleResults,
       searchHighlight,
       setSearchHighlight,
+      todaySchedule,
+      setTodaySchedule,
+      savingsSummary,
+      setSavingsSummary,
+      pendingSchedules,
+      setPendingSchedules,
     }),
-    [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults, searchHighlight],
+    [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults, searchHighlight,
+     todaySchedule, savingsSummary, pendingSchedules],
   );
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;

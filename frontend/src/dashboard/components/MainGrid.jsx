@@ -3,6 +3,16 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
+import LinearProgress from '@mui/material/LinearProgress';
+import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
+import Co2RoundedIcon from '@mui/icons-material/Co2Rounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { useAuth0 } from '@auth0/auth0-react';
 import Copyright from '../internals/components/Copyright';
 import ChartUserByCountry from './ChartUserByCountry';
@@ -11,6 +21,7 @@ import SessionsChart from './SessionsChart';
 import StatCard from './StatCard';
 import { getDevices, getUserProfile, getMonthlyRates, getBills } from '../../api';
 import { useLocation } from '../context/LocationContext';
+import { usePage } from '../context/PageContext';
 
 function categorizeType(type) {
   const t = (type || '').toLowerCase();
@@ -202,6 +213,7 @@ const EMPTY_DATA = {
 export default function MainGrid() {
   const { getAccessTokenSilently } = useAuth0();
   const { selectedLocationId } = useLocation();
+  const { todaySchedule, savingsSummary } = usePage();
   const [loading, setLoading] = React.useState(true);
   const [dashData, setDashData] = React.useState(null);
 
@@ -278,6 +290,60 @@ export default function MainGrid() {
             <StatCard {...card} />
           </Grid>
         ))}
+
+        {/* Today's schedule savings */}
+        {todaySchedule && (
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card variant="outlined" sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                  <AutoAwesomeRoundedIcon color="primary" />
+                  <Typography variant="subtitle2" color="text.secondary">Today's Schedule</Typography>
+                </Stack>
+                <Typography variant="h4" color="success.main" fontWeight={700}>
+                  ${(todaySchedule.costSavings ?? 0).toFixed(2)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  potential savings · {(todaySchedule.carbonSaved ?? 0).toFixed(2)} kg CO₂ reducible
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Cumulative savings */}
+        {savingsSummary && savingsSummary.totalSchedules > 0 && (
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Card variant="outlined" sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                  <TrendingUpRoundedIcon color="success" />
+                  <Typography variant="subtitle2" color="text.secondary">Lifetime Savings</Typography>
+                </Stack>
+                <Typography variant="h4" color="success.main" fontWeight={700}>
+                  ${(savingsSummary.totalSavings ?? 0).toFixed(2)}
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                  <Chip
+                    icon={<Co2RoundedIcon />}
+                    label={`${(savingsSummary.totalCarbonSaved ?? 0).toFixed(2)} kg CO₂`}
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                  />
+                  <Chip
+                    icon={<CheckCircleRoundedIcon />}
+                    label={`${(savingsSummary.complianceRate ?? 0).toFixed(0)}%`}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         <Grid size={{ xs: 12, sm: 12, lg: 6 }}>
           <PageViewsBarChart data={data.costBarData} />
         </Grid>

@@ -385,3 +385,85 @@ export async function saveUserPreferences(accessToken, data) {
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Saved schedules
+// ---------------------------------------------------------------------------
+
+/** Auto-generate today's optimized schedule (or return existing). Pass force: true to re-generate. */
+export async function generateTodaySchedule(accessToken, { force = false } = {}) {
+  const res = await fetch(`${API_BASE}/api/schedules/generate`, {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify({ force }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const e = new Error(err.detail || "Failed to generate schedule");
+    if (res.status === 401) e.isUnauthorized = true;
+    throw e;
+  }
+  return res.json();
+}
+
+/** Get today's saved schedule (may return null). */
+export async function getTodaySchedule(accessToken) {
+  const res = await fetch(`${API_BASE}/api/schedules/today`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to get today's schedule");
+  }
+  return res.json();
+}
+
+/** Get schedules awaiting user feedback (before today). */
+export async function getPendingSchedules(accessToken) {
+  const res = await fetch(`${API_BASE}/api/schedules/pending`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to get pending schedules");
+  }
+  return res.json();
+}
+
+/** Submit feedback on whether the user followed a schedule. */
+export async function submitScheduleFeedback(accessToken, scheduleId, followed) {
+  const res = await fetch(`${API_BASE}/api/schedules/${encodeURIComponent(scheduleId)}/feedback`, {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify({ followed }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to submit feedback");
+  }
+  return res.json();
+}
+
+/** Get schedule history. */
+export async function getScheduleHistory(accessToken, limit = 30) {
+  const res = await fetch(`${API_BASE}/api/schedules/history?limit=${limit}`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to get schedule history");
+  }
+  return res.json();
+}
+
+/** Get aggregate savings summary. */
+export async function getSavingsSummary(accessToken) {
+  const res = await fetch(`${API_BASE}/api/schedules/savings`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to get savings summary");
+  }
+  return res.json();
+}
