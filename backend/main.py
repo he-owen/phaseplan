@@ -24,6 +24,10 @@ from database import (
     get_user_profile as db_get_user_profile,
     upsert_user_preferences as db_upsert_user_preferences,
     get_user_preferences as db_get_user_preferences,
+    get_locations_by_user,
+    create_location as db_create_location,
+    update_location as db_update_location,
+    delete_location as db_delete_location,
 )
 from daily_optimizer import run_optimization_hybrid
 from weekly_scheduler import find_optimal_day_for_appliances
@@ -296,11 +300,12 @@ async def list_devices(userinfo: dict = Depends(_require_user)):
     """List devices for the authenticated user."""
     user_id = userinfo["sub"]
     rows = await get_devices_by_user(user_id)
-    # Normalize to camelCase for frontend
     return [
         {
             "id": r["device_id"],
             "userId": r["user_id"],
+            "locationId": r.get("location_id"),
+            "locationName": r.get("location_name"),
             "name": r["name"],
             "type": r["type"],
             "brand": r["brand"],
@@ -324,12 +329,12 @@ async def create_device_endpoint(request: Request, userinfo: dict = Depends(_req
     if not name or not brand or not model:
         raise HTTPException(status_code=400, detail="name, brand, and model are required")
 
+    location_id = body.get("locationId") or None
     type_ = body.get("type") or ""
     hourly_energy = body.get("hourlyEnergy")
     is_smart = body.get("isSmart")
     run_duration_minutes = body.get("runDurationMinutes")
 
-    # If any inferred field is missing, use Gemini (with Google Search grounding) to populate
     if _gemini and (not type_ or hourly_energy is None or is_smart is None or run_duration_minutes is None):
         logger.info("Enriching device via Gemini: name=%r, brand=%r, model=%r", name, brand, model)
         try:
@@ -369,6 +374,7 @@ async def create_device_endpoint(request: Request, userinfo: dict = Depends(_req
         hourly_energy=float(hourly_energy),
         is_smart=bool(is_smart),
         run_duration_minutes=int(run_duration_minutes),
+        location_id=location_id,
     )
     if not row:
         raise HTTPException(status_code=500, detail="Failed to create device")
@@ -379,6 +385,7 @@ def _device_response(row: dict):
     return {
         "id": row["device_id"],
         "userId": row["user_id"],
+        "locationId": row.get("location_id"),
         "name": row["name"],
         "type": row["type"],
         "brand": row["brand"],
@@ -404,6 +411,7 @@ async def update_device_endpoint(
     if not name or not brand or not model:
         raise HTTPException(status_code=400, detail="name, brand, and model are required")
 
+    location_id = body.get("locationId") or None
     type_ = body.get("type") or ""
     hourly_energy = body.get("hourlyEnergy")
     is_smart = body.get("isSmart")
@@ -444,6 +452,7 @@ async def update_device_endpoint(
         hourly_energy=float(hourly_energy),
         is_smart=bool(is_smart),
         run_duration_minutes=int(run_duration_minutes),
+        location_id=location_id,
     )
     if not row:
         raise HTTPException(status_code=404, detail="Device not found or access denied")
@@ -457,6 +466,63 @@ async def delete_device_endpoint(device_id: str, userinfo: dict = Depends(_requi
     deleted = await db_delete_device(device_id, user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Device not found or access denied")
+    return {"deleted": True}
+
+
+# ---------------------------------------------------------------------------
+# Locations
+# ---------------------------------------------------------------------------
+
+def _location_response(row: dict):
+    return {
+        "id": row["location_id"],
+        "userId": row["user_id"],
+        "name": row["name"],
+        "zip": row["zip"],
+    }
+
+
+@app.get("/api/locations")
+async def list_locations(userinfo: dict = Depends(_require_user)):
+    user_id = userinfo["sub"]
+    rows = await get_locations_by_user(user_id)
+    return [_location_response(r) for r in rows]
+
+
+@app.post("/api/locations")
+async def create_location_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
+    body = await request.json()
+    user_id = userinfo["sub"]
+    name = (body.get("name") or "").strip()
+    zip_code = (body.get("zip") or "").strip()
+    if not name or not zip_code:
+        raise HTTPException(status_code=400, detail="name and zip are required")
+    row = await db_create_location(user_id, name, zip_code)
+    if not row:
+        raise HTTPException(status_code=500, detail="Failed to create location")
+    return _location_response(row)
+
+
+@app.put("/api/locations/{location_id}")
+async def update_location_endpoint(location_id: str, request: Request, userinfo: dict = Depends(_require_user)):
+    body = await request.json()
+    user_id = userinfo["sub"]
+    name = (body.get("name") or "").strip()
+    zip_code = (body.get("zip") or "").strip()
+    if not name or not zip_code:
+        raise HTTPException(status_code=400, detail="name and zip are required")
+    row = await db_update_location(location_id, user_id, name, zip_code)
+    if not row:
+        raise HTTPException(status_code=404, detail="Location not found or access denied")
+    return _location_response(row)
+
+
+@app.delete("/api/locations/{location_id}")
+async def delete_location_endpoint(location_id: str, userinfo: dict = Depends(_require_user)):
+    user_id = userinfo["sub"]
+    deleted = await db_delete_location(location_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Location not found or access denied")
     return {"deleted": True}
 
 

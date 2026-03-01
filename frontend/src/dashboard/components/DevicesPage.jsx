@@ -17,6 +17,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import Copyright from '../internals/components/Copyright';
 import DeviceFormDialog from './DeviceFormDialog';
 import { getDevices, createDevice, updateDevice, deleteDevice } from '../../api';
+import { useLocation } from '../context/LocationContext';
 
 const PENDING_SPINNER = (
   <Box
@@ -79,7 +80,8 @@ const SESSION_EXPIRED_MESSAGE = 'Session expired or invalid. Please sign in agai
 
 export default function DevicesPage() {
   const { getAccessTokenSilently, isAuthenticated, loginWithRedirect } = useAuth0();
-  const [devices, setDevices] = React.useState([]);
+  const { locations, selectedLocationId } = useLocation();
+  const [allDevices, setAllDevices] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -102,10 +104,10 @@ export default function DevicesPage() {
     try {
       const token = await getAccessTokenSilently();
       const list = await getDevices(token);
-      setDevices(list);
+      setAllDevices(list);
     } catch (e) {
       setError(e?.isUnauthorized ? SESSION_EXPIRED_MESSAGE : (e?.message ?? 'Failed to load devices'));
-      setDevices([]);
+      setAllDevices([]);
     } finally {
       setLoading(false);
       fetchingRef.current = false;
@@ -134,7 +136,7 @@ export default function DevicesPage() {
     try {
       const token = await getAccessTokenSilently();
       await deleteDevice(token, id);
-      setDevices((prev) => prev.filter((d) => d.id !== id));
+      setAllDevices((prev) => prev.filter((d) => d.id !== id));
     } catch (e) {
       setError(e?.isUnauthorized ? SESSION_EXPIRED_MESSAGE : (e?.message ?? 'Failed to delete device'));
     }
@@ -147,7 +149,9 @@ export default function DevicesPage() {
       try {
         const token = await getAccessTokenSilently();
         const updated = await updateDevice(token, editingDevice.id, formData);
-        setDevices((prev) =>
+        const updatedLoc = locations.find((l) => l.id === updated.locationId);
+        updated.locationName = updatedLoc?.name || null;
+        setAllDevices((prev) =>
           prev.map((d) => (d.id === editingDevice.id ? updated : d)),
         );
         setDialogOpen(false);
@@ -159,13 +163,17 @@ export default function DevicesPage() {
       return;
     }
 
-    // New device: show optimistic row immediately (flush so it paints), then create in background
     const pendingId = `pending-${Date.now()}`;
+    const effectiveLocationId = formData.locationId || selectedLocationId || null;
+    const finalFormData = { ...formData, locationId: effectiveLocationId };
+    const matchedLoc = locations.find((l) => l.id === effectiveLocationId);
     const optimisticRow = {
       id: pendingId,
       name: formData.name,
       brand: formData.brand,
       model: formData.model,
+      locationId: effectiveLocationId,
+      locationName: matchedLoc?.name || null,
       type: '',
       hourlyEnergy: 0,
       isSmart: false,
@@ -174,24 +182,34 @@ export default function DevicesPage() {
     };
 
     flushSync(() => {
-      setDevices((prev) => [...prev, optimisticRow]);
+      setAllDevices((prev) => [...prev, optimisticRow]);
       setDialogOpen(false);
       setSaving(true);
     });
 
     try {
       const token = await getAccessTokenSilently();
-      const created = await createDevice(token, formData);
-      setDevices((prev) =>
+      const created = await createDevice(token, finalFormData);
+      created.locationName = matchedLoc?.name || null;
+      setAllDevices((prev) =>
         prev.map((d) => (d.id === pendingId ? created : d)),
       );
     } catch (e) {
-      setDevices((prev) => prev.filter((d) => d.id !== pendingId));
+      setAllDevices((prev) => prev.filter((d) => d.id !== pendingId));
       setError(e?.message ?? 'Failed to add device');
     } finally {
       setSaving(false);
     }
   };
+
+  const devices = selectedLocationId
+    ? allDevices.filter((d) => d.locationId === selectedLocationId)
+    : allDevices;
+
+  const isAllView = !selectedLocationId;
+  const selectedLocName = selectedLocationId
+    ? locations.find((l) => l.id === selectedLocationId)?.name
+    : null;
 
   const columns = [
     {
@@ -202,6 +220,22 @@ export default function DevicesPage() {
       headerAlign: 'center',
       align: 'center',
     },
+    ...(isAllView
+      ? [
+          {
+            field: 'locationName',
+            headerName: 'Location',
+            flex: 0.8,
+            minWidth: 100,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => {
+              if (params.row._pending) return <Box sx={PENDING_CELL_WRAPPER_SX}>{PENDING_SPINNER}</Box>;
+              return params.value || '—';
+            },
+          },
+        ]
+      : []),
     {
       field: 'type',
       headerName: 'Type',
@@ -329,7 +363,7 @@ export default function DevicesPage() {
         sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
       >
         <Typography component="h2" variant="h6">
-          Devices
+          {selectedLocName ? `Devices — ${selectedLocName}` : 'All Devices'}
         </Typography>
         <Button
           variant="contained"
@@ -392,6 +426,8 @@ export default function DevicesPage() {
         onSave={handleSave}
         device={editingDevice}
         saving={saving}
+        locations={isAllView ? locations : []}
+        defaultLocationId={selectedLocationId}
       />
       <Copyright sx={{ my: 4 }} />
     </Box>

@@ -6,15 +6,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 
 const emptyDevice = {
   name: '',
   brand: '',
   model: '',
+  locationId: '',
 };
 
-export default function DeviceFormDialog({ open, onClose, onSave, device, saving = false }) {
+export default function DeviceFormDialog({ open, onClose, onSave, device, saving = false, locations = [], defaultLocationId = null }) {
   const [form, setForm] = React.useState(emptyDevice);
   const isEdit = Boolean(device);
 
@@ -24,11 +26,15 @@ export default function DeviceFormDialog({ open, onClose, onSave, device, saving
         name: device.name || '',
         brand: device.brand || '',
         model: device.model || '',
+        locationId: device.locationId || '',
       });
     } else {
-      setForm(emptyDevice);
+      setForm({
+        ...emptyDevice,
+        locationId: defaultLocationId || (locations.length === 1 ? locations[0].id : ''),
+      });
     }
-  }, [device, open]);
+  }, [device, open, locations, defaultLocationId]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -36,8 +42,12 @@ export default function DeviceFormDialog({ open, onClose, onSave, device, saving
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ name: form.name.trim(), brand: form.brand.trim(), model: form.model.trim() });
-    // Parent closes dialog after updating state (so optimistic row can paint first)
+    onSave({
+      name: form.name.trim(),
+      brand: form.brand.trim(),
+      model: form.model.trim(),
+      locationId: form.locationId || null,
+    });
   };
 
   return (
@@ -77,6 +87,25 @@ export default function DeviceFormDialog({ open, onClose, onSave, device, saving
             fullWidth
             placeholder="e.g. WindFree 2.0"
           />
+          {locations.length > 0 && (
+            <TextField
+              select
+              label="Location"
+              value={form.locationId}
+              onChange={handleChange('locationId')}
+              fullWidth
+              helperText="Which address is this device at?"
+            >
+              <MenuItem value="">
+                <em>No location</em>
+              </MenuItem>
+              {locations.map((loc) => (
+                <MenuItem key={loc.id} value={loc.id}>
+                  {loc.name} — {loc.zip}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -95,4 +124,12 @@ DeviceFormDialog.propTypes = {
   onSave: PropTypes.func.isRequired,
   device: PropTypes.object,
   saving: PropTypes.bool,
+  locations: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+      zip: PropTypes.string,
+    }),
+  ),
+  defaultLocationId: PropTypes.string,
 };

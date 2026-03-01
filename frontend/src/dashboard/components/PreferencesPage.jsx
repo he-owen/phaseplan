@@ -9,6 +9,10 @@ import CardContent from '@mui/material/CardContent';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import InputAdornment from '@mui/material/InputAdornment';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import Divider from '@mui/material/Divider';
 import Chip from '@mui/material/Chip';
 import Table from '@mui/material/Table';
@@ -20,11 +24,19 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useAuth0 } from '@auth0/auth0-react';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import {
   getUserProfile,
   getUserPreferences,
   saveUserPreferences,
+  createLocation,
+  updateLocation,
+  deleteLocation,
 } from '../../api';
+import { useLocation } from '../context/LocationContext';
 import Copyright from '../internals/components/Copyright';
 
 const DEFAULT_DAY = { homeStart: '17:00', homeEnd: '08:00', awakeStart: '06:00', awakeEnd: '23:00' };
@@ -39,6 +51,7 @@ function buildDefaultSchedule() {
 
 export default function PreferencesPage() {
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { locations, refreshLocations } = useLocation();
 
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -46,6 +59,10 @@ export default function PreferencesPage() {
   const [success, setSuccess] = React.useState(null);
 
   const [profileInfo, setProfileInfo] = React.useState(null);
+  const [locDialogOpen, setLocDialogOpen] = React.useState(false);
+  const [editingLoc, setEditingLoc] = React.useState(null);
+  const [locForm, setLocForm] = React.useState({ name: '', zip: '' });
+  const [locSaving, setLocSaving] = React.useState(false);
 
   const [schedule, setSchedule] = React.useState(buildDefaultSchedule);
   const [tempAwake, setTempAwake] = React.useState(72);
@@ -118,6 +135,50 @@ export default function PreferencesPage() {
     }
   };
 
+  const handleAddLocation = () => {
+    setEditingLoc(null);
+    setLocForm({ name: '', zip: '' });
+    setLocDialogOpen(true);
+  };
+
+  const handleEditLocation = (loc) => {
+    setEditingLoc(loc);
+    setLocForm({ name: loc.name, zip: loc.zip });
+    setLocDialogOpen(true);
+  };
+
+  const handleDeleteLocation = async (locId) => {
+    try {
+      const token = await getAccessTokenSilently();
+      await deleteLocation(token, locId);
+      await refreshLocations();
+    } catch (e) {
+      setError(e?.message ?? 'Failed to delete location');
+    }
+  };
+
+  const handleLocSave = async () => {
+    const name = locForm.name.trim();
+    const zip = locForm.zip.trim();
+    if (!name || !zip) return;
+    setLocSaving(true);
+    setError(null);
+    try {
+      const token = await getAccessTokenSilently();
+      if (editingLoc) {
+        await updateLocation(token, editingLoc.id, { name, zip });
+      } else {
+        await createLocation(token, { name, zip });
+      }
+      await refreshLocations();
+      setLocDialogOpen(false);
+    } catch (e) {
+      setError(e?.message ?? 'Failed to save location');
+    } finally {
+      setLocSaving(false);
+    }
+  };
+
   if (!isAuthenticated) return null;
 
   if (loading) {
@@ -154,6 +215,94 @@ export default function PreferencesPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card variant="outlined" sx={{ mb: 3 }}>
+        <CardContent>
+          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight={600}>
+              Addresses
+            </Typography>
+            <Button size="small" startIcon={<AddRoundedIcon />} onClick={handleAddLocation}>
+              Add Address
+            </Button>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Manage your home and property addresses. Devices can be assigned to a specific location.
+          </Typography>
+          {locations.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+              No addresses yet. Add one to get started.
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {locations.map((loc) => (
+                <Stack
+                  key={loc.id}
+                  direction="row"
+                  sx={{
+                    alignItems: 'center',
+                    gap: 1.5,
+                    p: 1.5,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <PlaceRoundedIcon color="action" />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" fontWeight={600}>{loc.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">{loc.zip}</Typography>
+                  </Box>
+                  <Tooltip title="Edit">
+                    <IconButton size="small" onClick={() => handleEditLocation(loc)}>
+                      <EditRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton size="small" color="error" onClick={() => handleDeleteLocation(loc.id)}>
+                      <DeleteRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              ))}
+            </Stack>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Location Add/Edit Dialog */}
+      <Dialog open={locDialogOpen} onClose={() => setLocDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>{editingLoc ? 'Edit Address' : 'Add Address'}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Name"
+              value={locForm.name}
+              onChange={(e) => setLocForm((prev) => ({ ...prev, name: e.target.value }))}
+              fullWidth
+              placeholder="e.g. Home, Office, Cabin"
+              autoFocus
+            />
+            <TextField
+              label="Zip Code"
+              value={locForm.zip}
+              onChange={(e) => setLocForm((prev) => ({ ...prev, zip: e.target.value }))}
+              fullWidth
+              placeholder="e.g. 19805"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLocDialogOpen(false)} disabled={locSaving}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleLocSave}
+            disabled={locSaving || !locForm.name.trim() || !locForm.zip.trim()}
+          >
+            {locSaving ? 'Saving…' : editingLoc ? 'Save' : 'Add'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Card variant="outlined" sx={{ mb: 3 }}>
         <CardContent>

@@ -120,6 +120,65 @@ export async function runWeeklyOptimizationMe(accessToken, { pricesByDay, userPr
   return res.json();
 }
 
+// ---------------------------------------------------------------------------
+// Locations
+// ---------------------------------------------------------------------------
+
+/** List locations for the current user. */
+export async function getLocations(accessToken) {
+  const res = await fetch(`${API_BASE}/api/locations`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const e = new Error(err.detail || "Failed to load locations");
+    if (res.status === 401) e.isUnauthorized = true;
+    throw e;
+  }
+  return res.json();
+}
+
+/** Create a location. */
+export async function createLocation(accessToken, data) {
+  const res = await fetch(`${API_BASE}/api/locations`, {
+    method: "POST",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to create location");
+  }
+  return res.json();
+}
+
+/** Update a location. */
+export async function updateLocation(accessToken, locationId, data) {
+  const res = await fetch(`${API_BASE}/api/locations/${encodeURIComponent(locationId)}`, {
+    method: "PUT",
+    headers: authHeaders(accessToken),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to update location");
+  }
+  return res.json();
+}
+
+/** Delete a location. */
+export async function deleteLocation(accessToken, locationId) {
+  const res = await fetch(`${API_BASE}/api/locations/${encodeURIComponent(locationId)}`, {
+    method: "DELETE",
+    headers: authHeaders(accessToken),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to delete location");
+  }
+  return res.json();
+}
+
 /** Get the current user's profile (selectedProviderId, zip, etc.). */
 export async function getUserProfile(accessToken) {
   const res = await fetch(`${API_BASE}/api/users/me/profile`, {

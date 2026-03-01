@@ -64,11 +64,13 @@ async def get_devices_by_user(user_id: str) -> list[dict]:
     async with async_session() as session:
         result = await session.execute(
             text("""
-                SELECT device_id, user_id, name, type, brand, model,
-                       hourly_energy, is_smart, run_duration_minutes
-                FROM devices
-                WHERE user_id = :user_id
-                ORDER BY name
+                SELECT d.device_id, d.user_id, d.location_id, d.name, d.type,
+                       d.brand, d.model, d.hourly_energy, d.is_smart,
+                       d.run_duration_minutes, l.name AS location_name
+                FROM devices d
+                LEFT JOIN locations l ON l.location_id = d.location_id
+                WHERE d.user_id = :user_id
+                ORDER BY d.name
             """),
             {"user_id": user_id},
         )
@@ -85,6 +87,7 @@ async def create_device(
     hourly_energy: float | None = None,
     is_smart: bool = False,
     run_duration_minutes: int | None = None,
+    location_id: str | None = None,
 ) -> dict | None:
     """Create a device for the user. Returns the created row as dict or None on failure."""
     device_id = str(uuid.uuid4())
@@ -92,16 +95,17 @@ async def create_device(
         async with async_session() as session:
             result = await session.execute(
                 text("""
-                    INSERT INTO devices (device_id, user_id, name, type, brand, model,
+                    INSERT INTO devices (device_id, user_id, location_id, name, type, brand, model,
                                         hourly_energy, is_smart, run_duration_minutes)
-                    VALUES (:device_id, :user_id, :name, :type, :brand, :model,
+                    VALUES (:device_id, :user_id, :location_id, :name, :type, :brand, :model,
                             :hourly_energy, :is_smart, :run_duration_minutes)
-                    RETURNING device_id, user_id, name, type, brand, model,
+                    RETURNING device_id, user_id, location_id, name, type, brand, model,
                               hourly_energy, is_smart, run_duration_minutes
                 """),
                 {
                     "device_id": device_id,
                     "user_id": user_id,
+                    "location_id": location_id,
                     "name": name,
                     "type": type_,
                     "brand": brand or None,
@@ -129,6 +133,7 @@ async def update_device(
     hourly_energy: float | None = None,
     is_smart: bool = False,
     run_duration_minutes: int | None = None,
+    location_id: str | None = None,
 ) -> dict | None:
     """Update a device only if it belongs to the user. Returns updated row or None."""
     try:
@@ -138,14 +143,16 @@ async def update_device(
                     UPDATE devices
                     SET name = :name, type = :type, brand = :brand, model = :model,
                         hourly_energy = :hourly_energy, is_smart = :is_smart,
-                        run_duration_minutes = :run_duration_minutes
+                        run_duration_minutes = :run_duration_minutes,
+                        location_id = :location_id
                     WHERE device_id = :device_id AND user_id = :user_id
-                    RETURNING device_id, user_id, name, type, brand, model,
+                    RETURNING device_id, user_id, location_id, name, type, brand, model,
                               hourly_energy, is_smart, run_duration_minutes
                 """),
                 {
                     "device_id": device_id,
                     "user_id": user_id,
+                    "location_id": location_id,
                     "name": name,
                     "type": type_,
                     "brand": brand or None,
@@ -340,6 +347,73 @@ async def get_user_profile(user_id: str) -> dict | None:
         )
         row = result.mappings().first()
         return dict(row) if row else None
+
+
+# ---------------------------------------------------------------------------
+# Locations
+# ---------------------------------------------------------------------------
+
+async def get_locations_by_user(user_id: str) -> list[dict]:
+    async with async_session() as session:
+        result = await session.execute(
+            text("""
+                SELECT location_id, user_id, name, zip
+                FROM locations
+                WHERE user_id = :user_id
+                ORDER BY name
+            """),
+            {"user_id": user_id},
+        )
+        return [dict(r) for r in result.mappings().all()]
+
+
+async def create_location(user_id: str, name: str, zip_code: str) -> dict | None:
+    location_id = str(uuid.uuid4())
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                text("""
+                    INSERT INTO locations (location_id, user_id, name, zip)
+                    VALUES (:location_id, :user_id, :name, :zip)
+                    RETURNING location_id, user_id, name, zip
+                """),
+                {"location_id": location_id, "user_id": user_id, "name": name, "zip": zip_code},
+            )
+            row = result.mappings().first()
+            await session.commit()
+            return dict(row) if row else None
+    except Exception as e:
+        logger.warning("Create location failed: %s", e, exc_info=True)
+        return None
+
+
+async def update_location(location_id: str, user_id: str, name: str, zip_code: str) -> dict | None:
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                text("""
+                    UPDATE locations SET name = :name, zip = :zip
+                    WHERE location_id = :location_id AND user_id = :user_id
+                    RETURNING location_id, user_id, name, zip
+                """),
+                {"location_id": location_id, "user_id": user_id, "name": name, "zip": zip_code},
+            )
+            row = result.mappings().first()
+            await session.commit()
+            return dict(row) if row else None
+    except Exception as e:
+        logger.warning("Update location failed: %s", e, exc_info=True)
+        return None
+
+
+async def delete_location(location_id: str, user_id: str) -> bool:
+    async with async_session() as session:
+        result = await session.execute(
+            text("DELETE FROM locations WHERE location_id = :location_id AND user_id = :user_id"),
+            {"location_id": location_id, "user_id": user_id},
+        )
+        await session.commit()
+    return result.rowcount > 0
 
 
 async def set_user_provider(user_id: str, provider_id: str | None) -> bool:
