@@ -689,6 +689,7 @@ async def fetch_rates_endpoint(request: Request, userinfo: dict = Depends(_requi
             "utilityName": p["utility_name"],
             "rateName": p["rate_name"],
             "sector": p["sector"],
+            "serviceType": p.get("service_type"),
             "fetchedAt": p["fetched_at"].isoformat() if hasattr(p["fetched_at"], "isoformat") else str(p["fetched_at"]),
         }
         for p in unique
@@ -709,6 +710,7 @@ async def list_providers_endpoint(zip: str = "", userinfo: dict = Depends(_requi
             "utilityName": r["utility_name"],
             "rateName": r["rate_name"],
             "sector": r["sector"],
+            "serviceType": r.get("service_type"),
             "fetchedAt": r["fetched_at"].isoformat() if hasattr(r["fetched_at"], "isoformat") else str(r["fetched_at"]),
         }
         for r in rows
