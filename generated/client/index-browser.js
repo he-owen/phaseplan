@@ -142,10 +142,10 @@ exports.Prisma.DeviceScalarFieldEnum = {
   brand: 'brand',
   model: 'model',
   hourlyEnergy: 'hourlyEnergy',
-  standbyEnergy: 'standbyEnergy',
-  activeEnergy: 'activeEnergy',
   isSmart: 'isSmart',
-  runDurationMinutes: 'runDurationMinutes'
+  runDurationMinutes: 'runDurationMinutes',
+  activeEnergy: 'activeEnergy',
+  standbyEnergy: 'standbyEnergy'
 };
 
 exports.Prisma.BillHistoryScalarFieldEnum = {
@@ -188,6 +188,14 @@ exports.Prisma.HourlyRateScalarFieldEnum = {
   periodLabel: 'periodLabel'
 };
 
+exports.Prisma.User_preferencesScalarFieldEnum = {
+  preference_id: 'preference_id',
+  user_id: 'user_id',
+  weekly_schedule: 'weekly_schedule',
+  temp_awake: 'temp_awake',
+  temp_sleeping: 'temp_sleeping'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -225,8 +233,8 @@ exports.Prisma.ModelName = {
   Device: 'Device',
   BillHistory: 'BillHistory',
   UtilityProvider: 'UtilityProvider',
-  UserPreferences: 'UserPreferences',
-  HourlyRate: 'HourlyRate'
+  HourlyRate: 'HourlyRate',
+  user_preferences: 'user_preferences'
 };
 
 /**
