@@ -40,6 +40,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import heic2any from 'heic2any';
 import Copyright from '../internals/components/Copyright';
 import {
   getUserProfile,
@@ -471,22 +472,44 @@ export default function BillingPage() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setUploadFile(file);
-      setExtractedData(null);
-      setExtractError(null);
+  const ACCEPTED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/heic'];
+  const isHeic = (file) => file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic');
+
+  const processFile = async (file) => {
+    if (isHeic(file)) {
+      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      const converted = Array.isArray(blob) ? blob[0] : blob;
+      return new File([converted], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+    }
+    return file;
+  };
+
+  const handleFileChange = async (e) => {
+    const raw = e.target.files?.[0];
+    if (raw && (ACCEPTED_TYPES.includes(raw.type) || isHeic(raw))) {
+      try {
+        const file = await processFile(raw);
+        setUploadFile(file);
+        setExtractedData(null);
+        setExtractError(null);
+      } catch {
+        setExtractError('Failed to process HEIC image');
+      }
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
-    const file = e.dataTransfer?.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setUploadFile(file);
-      setExtractedData(null);
-      setExtractError(null);
+    const raw = e.dataTransfer?.files?.[0];
+    if (raw && (ACCEPTED_TYPES.includes(raw.type) || isHeic(raw))) {
+      try {
+        const file = await processFile(raw);
+        setUploadFile(file);
+        setExtractedData(null);
+        setExtractError(null);
+      } catch {
+        setExtractError('Failed to process HEIC image');
+      }
     }
   };
 
@@ -676,7 +699,7 @@ export default function BillingPage() {
         {!editingBill && (
           <Tabs value={tab} onChange={handleTabChange} aria-label="Add bill method" sx={{ px: 2 }}>
             <Tab label="Enter manually" {...a11yProps(0)} />
-            <Tab label="Upload PDF" {...a11yProps(1)} />
+            <Tab label="Upload bill" {...a11yProps(1)} />
           </Tabs>
         )}
         <DialogContent>
@@ -735,7 +758,7 @@ export default function BillingPage() {
                 <input
                   id="bill-file-input"
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,image/png,image/jpeg,image/webp,image/heic,.heic"
                   hidden
                   onChange={handleFileChange}
                 />
@@ -767,7 +790,7 @@ export default function BillingPage() {
                       Drag and drop or click to browse
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      PDF files only
+                      PDF, PNG, JPG, or WEBP
                     </Typography>
                   </>
                 )}
