@@ -2,6 +2,25 @@ import asyncio
 import logging
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Any
+
+from database import check_database
+from daily_optimizer import run_optimization_hybrid
+from weekly_scheduler import find_optimal_day_for_appliances
+
+
+class DailyOptimizeRequest(BaseModel):
+    appliances: list[dict[str, Any]]
+    prices_by_day: list[list[float]]
+    day_of_week: str
+    user_preferences: dict[str, Any]
+
+
+class WeeklyScheduleRequest(BaseModel):
+    appliances: list[dict[str, Any]]
+    prices_by_day: list[list[float]]
+    user_preferences: dict[str, Any]
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from auth0_userinfo import get_userinfo
@@ -13,7 +32,12 @@ from database import (
     create_device as db_create_device,
     update_device as db_update_device,
     delete_device as db_delete_device,
+    get_providers_by_zip,
+    get_hourly_rates,
+    set_user_provider as db_set_user_provider,
+    get_user_profile as db_get_user_profile,
 )
+from rate_service import fetch_and_store_providers, generate_monthly_rates
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +81,25 @@ async def status():
     }
 
 
+@app.post("/api/optimize/daily")
+async def optimize_daily(request: DailyOptimizeRequest):
+    result = run_optimization_hybrid(
+        request.appliances,
+        request.prices_by_day,
+        request.day_of_week,
+        request.user_preferences,
+    )
+    return result
+
+
+@app.post("/api/optimize/weekly")
+async def optimize_weekly(request: WeeklyScheduleRequest):
+    result = find_optimal_day_for_appliances(
+        request.appliances,
+        request.user_preferences,
+        request.prices_by_day,
+    )
+    return result
 @app.post("/api/users/me")
 async def sync_me(credentials: HTTPAuthorizationCredentials | None = Depends(security)):
     """Sync the current Auth0 user to the users table. Call with Authorization: Bearer <access_token>."""
@@ -255,3 +298,125 @@ async def delete_device_endpoint(device_id: str, userinfo: dict = Depends(_requi
     if not deleted:
         raise HTTPException(status_code=404, detail="Device not found or access denied")
     return {"deleted": True}
+
+
+@app.get("/api/users/me/profile")
+async def get_profile(userinfo: dict = Depends(_require_user)):
+    """Return the current user's profile including selected provider and zip."""
+    user_id = userinfo["sub"]
+    profile = await db_get_user_profile(user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": profile["id"],
+        "email": profile["email"],
+        "selectedProviderId": profile["selected_provider_id"],
+        "zip": profile["zip"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Utility rates
+# ---------------------------------------------------------------------------
+
+@app.post("/api/rates/fetch")
+async def fetch_rates_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
+    """Fetch utility providers from OpenEI for a zip code and store them."""
+    body = await request.json()
+    zip_code = (body.get("zip") or "").strip()
+    if not zip_code:
+        raise HTTPException(status_code=400, detail="zip is required")
+    try:
+        providers = await fetch_and_store_providers(zip_code)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"OpenEI request failed: {e}")
+    return [
+        {
+            "id": p["provider_id"],
+            "zipCode": p["zip_code"],
+            "utilityName": p["utility_name"],
+            "rateName": p["rate_name"],
+            "sector": p["sector"],
+            "fetchedAt": p["fetched_at"].isoformat() if hasattr(p["fetched_at"], "isoformat") else str(p["fetched_at"]),
+        }
+        for p in providers
+    ]
+
+
+@app.get("/api/rates/providers")
+async def list_providers_endpoint(zip: str = "", userinfo: dict = Depends(_require_user)):
+    """Return cached utility providers for a zip code."""
+    zip_code = zip.strip()
+    if not zip_code:
+        raise HTTPException(status_code=400, detail="zip query param is required")
+    rows = await get_providers_by_zip(zip_code)
+    return [
+        {
+            "id": r["provider_id"],
+            "zipCode": r["zip_code"],
+            "utilityName": r["utility_name"],
+            "rateName": r["rate_name"],
+            "sector": r["sector"],
+            "fetchedAt": r["fetched_at"].isoformat() if hasattr(r["fetched_at"], "isoformat") else str(r["fetched_at"]),
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/rates/generate")
+async def generate_rates_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
+    """Generate hourly rate rows for a provider/month/year."""
+    body = await request.json()
+    provider_id = body.get("provider_id") or ""
+    month = body.get("month")
+    year = body.get("year")
+    if not provider_id or month is None or year is None:
+        raise HTTPException(status_code=400, detail="provider_id, month, and year are required")
+    try:
+        count = await generate_monthly_rates(provider_id, int(month), int(year))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rate generation failed: {e}")
+    return {"generated": count}
+
+
+@app.get("/api/rates/monthly")
+async def get_monthly_rates_endpoint(
+    provider_id: str = "",
+    month: int = 0,
+    year: int = 0,
+    userinfo: dict = Depends(_require_user),
+):
+    """Return hourly rate rows for a provider/month/year."""
+    if not provider_id or not month or not year:
+        raise HTTPException(status_code=400, detail="provider_id, month, and year are required")
+    rows = await get_hourly_rates(provider_id, month, year)
+    return [
+        {
+            "id": r["rate_id"],
+            "providerId": r["provider_id"],
+            "date": r["date"].isoformat() if hasattr(r["date"], "isoformat") else str(r["date"]),
+            "hour": r["hour"],
+            "baseRate": float(r["base_rate"]),
+            "deliveryCost": float(r["delivery_cost"]),
+            "totalRate": float(r["total_rate"]),
+            "periodIndex": r["period_index"],
+            "periodLabel": r["period_label"],
+        }
+        for r in rows
+    ]
+
+
+@app.put("/api/users/me/provider")
+async def set_provider_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
+    """Set the user's selected utility provider."""
+    body = await request.json()
+    provider_id = body.get("provider_id")
+    user_id = userinfo["sub"]
+    ok = await db_set_user_provider(user_id, provider_id)
+    if not ok:
+        raise HTTPException(status_code=500, detail="Failed to set provider")
+    return {"updated": True, "providerId": provider_id}
