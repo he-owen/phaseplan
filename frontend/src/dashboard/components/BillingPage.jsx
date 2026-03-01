@@ -247,23 +247,7 @@ function UtilityRatesView() {
   const [expandedDay, setExpandedDay] = React.useState(null);
   const [noProvider, setNoProvider] = React.useState(false);
 
-  const loadRates = React.useCallback(async (pid, month, year) => {
-    setLoading(true);
-    setError(null);
-    setDailyRows([]);
-    try {
-      const token = await getAccessTokenSilently();
-      const rates = await getMonthlyRates(token, pid, month, year);
-      if (rates.length > 0) {
-        setDailyRows(groupRatesByDay(rates));
-      }
-    } catch (e) {
-      setError(e?.message ?? 'Failed to load rates');
-    } finally {
-      setLoading(false);
-    }
-  }, [getAccessTokenSilently]);
-
+  // Effect 1: fetch user profile to get the selected provider
   React.useEffect(() => {
     if (!isAuthenticated) return;
     let cancelled = false;
@@ -279,7 +263,6 @@ function UtilityRatesView() {
           return;
         }
         setProviderId(profile.selectedProviderId);
-        await loadRates(profile.selectedProviderId, rateMonth, rateYear);
       } catch {
         if (!cancelled) setLoading(false);
       }
@@ -288,11 +271,31 @@ function UtilityRatesView() {
     return () => { cancelled = true; };
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  const handleMonthChange = (month, year) => {
-    setRateMonth(month);
-    setRateYear(year);
-    if (providerId) loadRates(providerId, month, year);
-  };
+  // Effect 2: load rates whenever providerId, month, or year changes
+  React.useEffect(() => {
+    if (!providerId) return;
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setError(null);
+      setDailyRows([]);
+      try {
+        const token = await getAccessTokenSilently();
+        const rates = await getMonthlyRates(token, providerId, rateMonth, rateYear);
+        if (cancelled) return;
+        if (rates.length > 0) {
+          setDailyRows(groupRatesByDay(rates));
+        }
+      } catch (e) {
+        if (!cancelled) setError(e?.message ?? 'Failed to load rates');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [providerId, rateMonth, rateYear, getAccessTokenSilently]);
 
   if (!isAuthenticated) return null;
 
@@ -317,7 +320,7 @@ function UtilityRatesView() {
               label="Month"
               size="small"
               value={rateMonth}
-              onChange={(e) => handleMonthChange(Number(e.target.value), rateYear)}
+              onChange={(e) => setRateMonth(Number(e.target.value))}
               sx={{ width: 130 }}
             >
               {MONTHS.map((m, i) => (
@@ -329,7 +332,7 @@ function UtilityRatesView() {
               label="Year"
               size="small"
               value={rateYear}
-              onChange={(e) => handleMonthChange(rateMonth, Number(e.target.value))}
+              onChange={(e) => setRateYear(Number(e.target.value))}
               inputProps={{ min: 2020, max: 2035 }}
               sx={{ width: 90 }}
             />
