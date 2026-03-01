@@ -15,13 +15,13 @@ class GeminiService:
             raise RuntimeError("GEMINI_API_KEY not set")
         self.client = genai.Client(api_key=api_key)
 
-    def extract_bill_from_pdf(self, pdf_bytes: bytes) -> dict:
+    def extract_bill(self, file_bytes: bytes, mime_type: str = "application/pdf") -> dict:
         """
-        Given raw PDF bytes of a utility bill, use Gemini to extract:
+        Given raw bytes of a utility bill (PDF or image), use Gemini to extract:
         month, year, totalAmount, usageKwh, utility (company name).
         """
         prompt = """You are an expert at reading utility/electricity bills.
-Analyze this PDF of a utility bill and extract the following information.
+Analyze this utility bill and extract the following information.
 
 Return a JSON object with exactly these fields (no other text, no markdown):
 - "month": number (1-12), the billing month
@@ -34,12 +34,12 @@ If you cannot determine a value, use null for optional fields (usageKwh) or your
 
 Return only valid JSON, no code block or explanation."""
 
-        pdf_part = Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+        file_part = Part.from_bytes(data=file_bytes, mime_type=mime_type)
 
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=[pdf_part, prompt],
+                contents=[file_part, prompt],
             )
             text = response.text
             if not text:

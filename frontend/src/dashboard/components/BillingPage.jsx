@@ -33,6 +33,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useScrollHighlight } from '../hooks/useScrollHighlight';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
@@ -367,6 +368,7 @@ function UtilityRatesView() {
 }
 
 export default function BillingPage() {
+  useScrollHighlight();
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -471,9 +473,15 @@ export default function BillingPage() {
     }
   };
 
+  const ACCEPTED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'];
+  const isAccepted = (file) =>
+    ACCEPTED_TYPES.includes(file.type) ||
+    file.name?.toLowerCase().endsWith('.heic') ||
+    file.name?.toLowerCase().endsWith('.heif');
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
+    if (file && isAccepted(file)) {
       setUploadFile(file);
       setExtractedData(null);
       setExtractError(null);
@@ -483,7 +491,7 @@ export default function BillingPage() {
   const handleDrop = (e) => {
     e.preventDefault();
     const file = e.dataTransfer?.files?.[0];
-    if (file && file.type === 'application/pdf') {
+    if (file && isAccepted(file)) {
       setUploadFile(file);
       setExtractedData(null);
       setExtractError(null);
@@ -596,12 +604,14 @@ export default function BillingPage() {
         Billing
       </Typography>
 
+
       {error && (
         <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
       <Stack
+        id="billing-history"
         direction="row"
         sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
       >
@@ -660,7 +670,7 @@ export default function BillingPage() {
         />
       )}
 
-      <Accordion defaultExpanded={false} sx={{ mt: 3 }}>
+      <Accordion id="billing-rates" defaultExpanded={false} sx={{ mt: 3 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="subtitle1" fontWeight={600}>
             Utility Rates
@@ -676,7 +686,7 @@ export default function BillingPage() {
         {!editingBill && (
           <Tabs value={tab} onChange={handleTabChange} aria-label="Add bill method" sx={{ px: 2 }}>
             <Tab label="Enter manually" {...a11yProps(0)} />
-            <Tab label="Upload PDF" {...a11yProps(1)} />
+            <Tab label="Upload bill" {...a11yProps(1)} />
           </Tabs>
         )}
         <DialogContent>
@@ -735,7 +745,7 @@ export default function BillingPage() {
                 <input
                   id="bill-file-input"
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,image/png,image/jpeg,image/webp,image/heic,.heic,.heif"
                   hidden
                   onChange={handleFileChange}
                 />
@@ -767,7 +777,7 @@ export default function BillingPage() {
                       Drag and drop or click to browse
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      PDF files only
+                      PDF, PNG, JPG, or WEBP
                     </Typography>
                   </>
                 )}

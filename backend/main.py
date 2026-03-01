@@ -400,6 +400,74 @@ def _device_response(row: dict):
     }
 
 
+@app.post("/api/devices/batch")
+async def create_devices_batch_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
+    """Create multiple identical devices in one call. Gemini is invoked only once."""
+    body = await request.json()
+    user_id = userinfo["sub"]
+    name = (body.get("name") or "").strip()
+    brand = (body.get("brand") or "").strip()
+    model = (body.get("model") or "").strip()
+    quantity = int(body.get("quantity", 1))
+    if not name or not brand or not model:
+        raise HTTPException(status_code=400, detail="name, brand, and model are required")
+    if quantity < 1 or quantity > 50:
+        raise HTTPException(status_code=400, detail="quantity must be between 1 and 50")
+
+    location_id = body.get("locationId") or None
+    type_ = body.get("type") or ""
+    hourly_energy = body.get("hourlyEnergy")
+    is_smart = body.get("isSmart")
+    run_duration_minutes = body.get("runDurationMinutes")
+
+    if _gemini and (not type_ or hourly_energy is None or is_smart is None or run_duration_minutes is None):
+        logger.info("Enriching device via Gemini (batch=%d): name=%r, brand=%r, model=%r", quantity, name, brand, model)
+        try:
+            enriched = await asyncio.to_thread(
+                _gemini.enrich_device, name, brand or "", model or ""
+            )
+            logger.info("Gemini enrichment result: %s", enriched)
+            type_ = type_ or enriched.get("type", "Other")
+            if hourly_energy is None:
+                hourly_energy = enriched.get("hourlyEnergy", 0.0)
+            if is_smart is None:
+                is_smart = enriched.get("isSmart", False)
+            if run_duration_minutes is None:
+                run_duration_minutes = enriched.get("runDurationMinutes", 60)
+        except Exception as e:
+            logger.exception("Gemini enrichment failed")
+            raise HTTPException(
+                status_code=502,
+                detail=f"Failed to enrich device with Gemini: {getattr(e, 'message', str(e))}",
+            )
+    type_ = type_ or "Other"
+    if hourly_energy is None:
+        hourly_energy = 0.0
+    if is_smart is None:
+        is_smart = False
+    if run_duration_minutes is None:
+        run_duration_minutes = 60
+
+    results = []
+    for i in range(quantity):
+        device_name = f"{name} ({i + 1})" if quantity > 1 else name
+        row = await db_create_device(
+            user_id=user_id,
+            name=device_name,
+            type_=type_,
+            brand=brand or None,
+            model=model or None,
+            hourly_energy=float(hourly_energy),
+            is_smart=bool(is_smart),
+            run_duration_minutes=int(run_duration_minutes),
+            location_id=location_id,
+        )
+        if not row:
+            raise HTTPException(status_code=500, detail=f"Failed to create device {i + 1}")
+        results.append(_device_response(row))
+    return results
+
+
 @app.put("/api/devices/{device_id}")
 async def update_device_endpoint(
     device_id: str,
@@ -578,27 +646,66 @@ async def create_bill_endpoint(request: Request, userinfo: dict = Depends(_requi
     return _bill_response(row)
 
 
+ALLOWED_BILL_MIMES = {
+    "application/pdf", "image/png", "image/jpeg", "image/webp",
+    "image/heic", "image/heif",
+}
+
+HEIC_MIMES = {"image/heic", "image/heif"}
+
+
+def _convert_heic_to_jpeg(raw_bytes: bytes) -> tuple[bytes, str]:
+    """Convert HEIC/HEIF bytes to JPEG. Returns (jpeg_bytes, 'image/jpeg')."""
+    import io
+    from pillow_heif import register_heif_opener
+    from PIL import Image
+
+    register_heif_opener()
+    img = Image.open(io.BytesIO(raw_bytes))
+    img = img.convert("RGB")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=90)
+    return buf.getvalue(), "image/jpeg"
+
+
 @app.post("/api/bills/extract")
 async def extract_bill_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
-    """Accept a PDF upload, use Gemini to extract bill data, and return the extracted fields."""
+    """Accept a PDF or image upload, use Gemini to extract bill data."""
     if not _gemini:
         raise HTTPException(status_code=503, detail="Gemini API not configured")
 
     content_type = request.headers.get("content-type", "")
+    mime_type = "application/pdf"
+
     if "multipart/form-data" in content_type:
         form = await request.form()
         file = form.get("file")
         if not file:
             raise HTTPException(status_code=400, detail="No file uploaded")
-        pdf_bytes = await file.read()
+        file_bytes = await file.read()
+        file_mime = (getattr(file, "content_type", "") or "").lower()
+        # Normalize common variants
+        if file_mime in ("image/jpg",):
+            file_mime = "image/jpeg"
+        mime_type = file_mime or "application/pdf"
     else:
-        pdf_bytes = await request.body()
+        file_bytes = await request.body()
 
-    if not pdf_bytes:
+    if not file_bytes:
         raise HTTPException(status_code=400, detail="Empty file")
 
+    if mime_type not in ALLOWED_BILL_MIMES:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {mime_type}")
+
+    if mime_type in HEIC_MIMES:
+        try:
+            file_bytes, mime_type = await asyncio.to_thread(_convert_heic_to_jpeg, file_bytes)
+        except Exception as e:
+            logger.exception("HEIC conversion failed")
+            raise HTTPException(status_code=400, detail=f"Failed to convert HEIC image: {e}")
+
     try:
-        extracted = await asyncio.to_thread(_gemini.extract_bill_from_pdf, pdf_bytes)
+        extracted = await asyncio.to_thread(_gemini.extract_bill, file_bytes, mime_type)
     except Exception as e:
         logger.exception("Gemini bill extraction failed")
         raise HTTPException(status_code=502, detail=f"Failed to extract bill data: {e}")

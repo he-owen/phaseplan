@@ -21,6 +21,12 @@ const PageContext = React.createContext({
   setOptimizationResults: () => {},
   weeklyScheduleResults: null,
   setWeeklyScheduleResults: () => {},
+  searchHighlight: null,
+  setSearchHighlight: () => {},
+  notificationsOpen: false,
+  setNotificationsOpen: () => {},
+  notificationCount: null,
+  setNotificationCount: () => {},
 });
 
 export function PageProvider({ children }) {
@@ -28,6 +34,9 @@ export function PageProvider({ children }) {
   const navigate = useNavigate();
   const [optimizationResults, setOptimizationResults] = React.useState(null);
   const [weeklyScheduleResults, setWeeklyScheduleResults] = React.useState(null);
+  const [searchHighlight, setSearchHighlight] = React.useState(null);
+  const [notificationsOpen, setNotificationsOpen] = React.useState(false);
+  const [notificationCount, setNotificationCount] = React.useState(null);
 
   const currentPage = PATH_TO_PAGE[location.pathname] || 'Home';
 
@@ -47,8 +56,14 @@ export function PageProvider({ children }) {
       setOptimizationResults,
       weeklyScheduleResults,
       setWeeklyScheduleResults,
+      searchHighlight,
+      setSearchHighlight,
+      notificationsOpen,
+      setNotificationsOpen,
+      notificationCount,
+      setNotificationCount,
     }),
-    [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults],
+    [currentPage, setCurrentPage, optimizationResults, weeklyScheduleResults, searchHighlight, notificationsOpen, notificationCount],
   );
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
