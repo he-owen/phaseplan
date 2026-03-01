@@ -1,0 +1,399 @@
+import * as React from 'react';
+import { flushSync } from 'react-dom';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { DataGrid } from '@mui/x-data-grid';
+import { useAuth0 } from '@auth0/auth0-react';
+import Copyright from '../internals/components/Copyright';
+import DeviceFormDialog from './DeviceFormDialog';
+import { getDevices, createDevice, updateDevice, deleteDevice } from '../../api';
+
+const PENDING_SPINNER = (
+  <Box
+    sx={{
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <CircularProgress size={18} />
+  </Box>
+);
+const PENDING_CELL_WRAPPER_SX = {
+  position: 'relative',
+  width: '100%',
+  height: '100%',
+  minHeight: 40,
+  display: 'block',
+};
+
+function renderSmartChip(params) {
+  if (params.row._pending) return <Box sx={PENDING_CELL_WRAPPER_SX}>{PENDING_SPINNER}</Box>;
+  return (
+    <Chip
+      label={params.value ? 'Smart' : 'Standard'}
+      color={params.value ? 'success' : 'default'}
+      size="small"
+      variant="outlined"
+    />
+  );
+}
+
+function formatEnergy(params) {
+  if (params.row._pending) return <Box sx={PENDING_CELL_WRAPPER_SX}>{PENDING_SPINNER}</Box>;
+  if (params.value == null) return '—';
+  return `${params.value} kWh`;
+}
+
+function formatDuration(params) {
+  if (params.row._pending) return <Box sx={PENDING_CELL_WRAPPER_SX}>{PENDING_SPINNER}</Box>;
+  if (params.value == null) return '—';
+  const hours = Math.floor(params.value / 60);
+  const mins = params.value % 60;
+  if (hours === 0) return `${mins}m`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
+function renderType(params) {
+  if (params.row._pending) return <Box sx={PENDING_CELL_WRAPPER_SX}>{PENDING_SPINNER}</Box>;
+  return params.value || '—';
+}
+
+const SESSION_EXPIRED_MESSAGE = 'Session expired or invalid. Please sign in again.';
+
+export default function DevicesPage() {
+  const { getAccessTokenSilently, isAuthenticated, loginWithRedirect } = useAuth0();
+  const [devices, setDevices] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editingDevice, setEditingDevice] = React.useState(null);
+  const [saving, setSaving] = React.useState(false);
+
+  const fetchingRef = React.useRef(false);
+
+  const handleRelogin = () => {
+    setError(null);
+    loginWithRedirect({ appState: { returnTo: window.location.pathname } });
+  };
+
+  const fetchDevices = React.useCallback(async () => {
+    if (!isAuthenticated) return;
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+    setLoading(true);
+    setError(null);
+    try {
+      const token = await getAccessTokenSilently();
+      const list = await getDevices(token);
+      setDevices(list);
+    } catch (e) {
+      setError(e?.isUnauthorized ? SESSION_EXPIRED_MESSAGE : (e?.message ?? 'Failed to load devices'));
+      setDevices([]);
+    } finally {
+      setLoading(false);
+      fetchingRef.current = false;
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+    fetchDevices();
+  }, [isAuthenticated, fetchDevices]);
+
+  const handleAdd = () => {
+    setEditingDevice(null);
+    setDialogOpen(true);
+  };
+
+  const handleEdit = (device) => {
+    setEditingDevice(device);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = await getAccessTokenSilently();
+      await deleteDevice(token, id);
+      setDevices((prev) => prev.filter((d) => d.id !== id));
+    } catch (e) {
+      setError(e?.isUnauthorized ? SESSION_EXPIRED_MESSAGE : (e?.message ?? 'Failed to delete device'));
+    }
+  };
+
+  const handleSave = async (formData) => {
+    setError(null);
+    if (editingDevice) {
+      setSaving(true);
+      try {
+        const token = await getAccessTokenSilently();
+        const updated = await updateDevice(token, editingDevice.id, formData);
+        setDevices((prev) =>
+          prev.map((d) => (d.id === editingDevice.id ? updated : d)),
+        );
+        setDialogOpen(false);
+      } catch (e) {
+        setError(e?.isUnauthorized ? SESSION_EXPIRED_MESSAGE : (e?.message ?? 'Failed to save device'));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    // New device: show optimistic row immediately (flush so it paints), then create in background
+    const pendingId = `pending-${Date.now()}`;
+    const optimisticRow = {
+      id: pendingId,
+      name: formData.name,
+      brand: formData.brand,
+      model: formData.model,
+      type: '',
+      hourlyEnergy: 0,
+      isSmart: false,
+      runDurationMinutes: 0,
+      _pending: true,
+    };
+
+    flushSync(() => {
+      setDevices((prev) => [...prev, optimisticRow]);
+      setDialogOpen(false);
+      setSaving(true);
+    });
+
+    try {
+      const token = await getAccessTokenSilently();
+      const created = await createDevice(token, formData);
+      setDevices((prev) =>
+        prev.map((d) => (d.id === pendingId ? created : d)),
+      );
+    } catch (e) {
+      setDevices((prev) => prev.filter((d) => d.id !== pendingId));
+      setError(e?.message ?? 'Failed to add device');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const columns = [
+    {
+      field: 'name',
+      headerName: 'Device Name',
+      flex: 1.5,
+      minWidth: 160,
+      headerAlign: 'center',
+      align: 'center',
+    },
+    {
+      field: 'type',
+      headerName: 'Type',
+      flex: 0.8,
+      minWidth: 100,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: renderType,
+    },
+    {
+      field: 'brand',
+      headerName: 'Brand',
+      flex: 0.8,
+      minWidth: 100,
+      headerAlign: 'center',
+      align: 'center',
+    },
+    {
+      field: 'model',
+      headerName: 'Model',
+      flex: 1,
+      minWidth: 120,
+      headerAlign: 'center',
+      align: 'center',
+    },
+    {
+      field: 'hourlyEnergy',
+      headerName: 'Hourly Energy',
+      flex: 0.8,
+      minWidth: 110,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: formatEnergy,
+    },
+    {
+      field: 'isSmart',
+      headerName: 'Smart',
+      flex: 0.6,
+      minWidth: 90,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: renderSmartChip,
+    },
+    {
+      field: 'runDurationMinutes',
+      headerName: 'Daily Run Time',
+      flex: 0.8,
+      minWidth: 110,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: formatDuration,
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 0.6,
+      minWidth: 100,
+      headerAlign: 'center',
+      align: 'center',
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        if (params.row._pending) {
+          return (
+            <Typography variant="caption" color="text.secondary">
+              Adding…
+            </Typography>
+          );
+        }
+        const actionBtnSx = {
+          width: 28,
+          height: 28,
+          minWidth: 24,
+          minHeight: 24,
+          padding: 0,
+          '& .MuiSvgIcon-root': { fontSize: 14 },
+        };
+        return (
+          <Stack direction="row" spacing={0} justifyContent="center">
+            <Tooltip title="Edit">
+              <IconButton sx={actionBtnSx} onClick={() => handleEdit(params.row)}>
+                <EditRoundedIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton color="error" sx={actionBtnSx} onClick={() => handleDelete(params.row.id)}>
+                <DeleteRoundedIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      },
+    },
+  ];
+
+  if (!isAuthenticated) {
+    return (
+      <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
+        <Alert severity="info">Sign in to view and manage your devices.</Alert>
+        <Copyright sx={{ my: 4 }} />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
+      {error && (
+        <Alert
+          severity="error"
+          onClose={() => setError(null)}
+          action={
+            error === SESSION_EXPIRED_MESSAGE ? (
+              <Button color="inherit" size="small" onClick={handleRelogin}>
+                Sign in again
+              </Button>
+            ) : null
+          }
+          sx={{ mb: 2 }}
+        >
+          {error}
+        </Alert>
+      )}
+      <Stack
+        direction="row"
+        sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+      >
+        <Typography component="h2" variant="h6">
+          Devices
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<AddRoundedIcon />}
+          onClick={handleAdd}
+          disabled={loading}
+        >
+          Add Device
+        </Button>
+      </Stack>
+      {loading ? (
+        <Stack alignItems="center" sx={{ py: 4 }}>
+          <CircularProgress />
+        </Stack>
+      ) : (
+      <DataGrid
+        rows={devices}
+        columns={columns}
+        getRowId={(row) => row.id}
+        sx={{
+          '& .MuiDataGrid-cell': { position: 'relative' },
+          '& .MuiDataGrid-cellContent': { height: '100%', width: '100%' },
+        }}
+        getRowClassName={(params) =>
+          params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+        }
+        initialState={{
+          pagination: { paginationModel: { pageSize: 20 } },
+        }}
+        pageSizeOptions={[10, 20, 50]}
+        disableColumnResize
+        density="compact"
+        disableRowSelectionOnClick
+        slotProps={{
+          filterPanel: {
+            filterFormProps: {
+              logicOperatorInputProps: { variant: 'outlined', size: 'small' },
+              columnInputProps: {
+                variant: 'outlined',
+                size: 'small',
+                sx: { mt: 'auto' },
+              },
+              operatorInputProps: {
+                variant: 'outlined',
+                size: 'small',
+                sx: { mt: 'auto' },
+              },
+              valueInputProps: {
+                InputComponentProps: { variant: 'outlined', size: 'small' },
+              },
+            },
+          },
+        }}
+      />
+      )}
+      <DeviceFormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSave={handleSave}
+        device={editingDevice}
+        saving={saving}
+      />
+      <Copyright sx={{ my: 4 }} />
+    </Box>
+  );
+}
