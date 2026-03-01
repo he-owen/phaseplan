@@ -1,5 +1,26 @@
+import asyncio
+import logging
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Any
+
+from database import check_database
+from daily_optimizer import run_optimization_hybrid
+from weekly_scheduler import find_optimal_day_for_appliances
+
+
+class DailyOptimizeRequest(BaseModel):
+    appliances: list[dict[str, Any]]
+    prices_by_day: list[list[float]]
+    day_of_week: str
+    user_preferences: dict[str, Any]
+
+
+class WeeklyScheduleRequest(BaseModel):
+    appliances: list[dict[str, Any]]
+    prices_by_day: list[list[float]]
+    user_preferences: dict[str, Any]
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from auth0_userinfo import get_userinfo
@@ -17,6 +38,16 @@ from database import (
     get_user_profile as db_get_user_profile,
 )
 from rate_service import fetch_and_store_providers, generate_monthly_rates
+
+logger = logging.getLogger(__name__)
+
+try:
+    from GeminiAPI.service import GeminiService
+    _gemini = GeminiService()
+    logger.info("Gemini API enabled for device enrichment")
+except Exception as e:
+    _gemini = None
+    logger.warning("Gemini API not available: %s — device enrichment will use defaults", e)
 
 security = HTTPBearer(auto_error=False)
 app = FastAPI(title="API")
@@ -50,6 +81,25 @@ async def status():
     }
 
 
+@app.post("/api/optimize/daily")
+async def optimize_daily(request: DailyOptimizeRequest):
+    result = run_optimization_hybrid(
+        request.appliances,
+        request.prices_by_day,
+        request.day_of_week,
+        request.user_preferences,
+    )
+    return result
+
+
+@app.post("/api/optimize/weekly")
+async def optimize_weekly(request: WeeklyScheduleRequest):
+    result = find_optimal_day_for_appliances(
+        request.appliances,
+        request.user_preferences,
+        request.prices_by_day,
+    )
+    return result
 @app.post("/api/users/me")
 async def sync_me(credentials: HTTPAuthorizationCredentials | None = Depends(security)):
     """Sync the current Auth0 user to the users table. Call with Authorization: Bearer <access_token>."""
@@ -95,7 +145,7 @@ async def list_devices(userinfo: dict = Depends(_require_user)):
             "type": r["type"],
             "brand": r["brand"],
             "model": r["model"],
-            "hourlyEnergy": r["hourly_energy"],
+            "hourlyEnergy": r.get("hourly_energy"),
             "isSmart": r["is_smart"],
             "runDurationMinutes": r["run_duration_minutes"],
         }
@@ -105,22 +155,60 @@ async def list_devices(userinfo: dict = Depends(_require_user)):
 
 @app.post("/api/devices")
 async def create_device_endpoint(request: Request, userinfo: dict = Depends(_require_user)):
-    """Create a device for the authenticated user. Body: name, type, brand?, model?, hourlyEnergy?, isSmart?, runDurationMinutes?."""
+    """Create a device. Body: name, brand, model (required). Gemini fills type, hourlyEnergy, isSmart, runDurationMinutes if not provided."""
     body = await request.json()
     user_id = userinfo["sub"]
-    name = body.get("name") or ""
+    name = (body.get("name") or "").strip()
+    brand = (body.get("brand") or "").strip()
+    model = (body.get("model") or "").strip()
+    if not name or not brand or not model:
+        raise HTTPException(status_code=400, detail="name, brand, and model are required")
+
     type_ = body.get("type") or ""
-    if not name or not type_:
-        raise HTTPException(status_code=400, detail="name and type are required")
+    hourly_energy = body.get("hourlyEnergy")
+    is_smart = body.get("isSmart")
+    run_duration_minutes = body.get("runDurationMinutes")
+
+    # If any inferred field is missing, use Gemini (with Google Search grounding) to populate
+    if _gemini and (not type_ or hourly_energy is None or is_smart is None or run_duration_minutes is None):
+        logger.info("Enriching device via Gemini: name=%r, brand=%r, model=%r", name, brand, model)
+        try:
+            enriched = await asyncio.to_thread(
+                _gemini.enrich_device, name, brand or "", model or ""
+            )
+            logger.info("Gemini enrichment result: %s", enriched)
+            type_ = type_ or enriched.get("type", "Other")
+            if hourly_energy is None:
+                hourly_energy = enriched.get("hourlyEnergy", 0.0)
+            if is_smart is None:
+                is_smart = enriched.get("isSmart", False)
+            if run_duration_minutes is None:
+                run_duration_minutes = enriched.get("runDurationMinutes", 60)
+        except Exception as e:
+            logger.exception("Gemini enrichment failed")
+            raise HTTPException(
+                status_code=502,
+                detail=f"Failed to enrich device with Gemini: {getattr(e, 'message', str(e))}",
+            )
+    elif not type_ or hourly_energy is None or is_smart is None or run_duration_minutes is None:
+        logger.info("Using default values (Gemini not configured)")
+    type_ = type_ or "Other"
+    if hourly_energy is None:
+        hourly_energy = 0.0
+    if is_smart is None:
+        is_smart = False
+    if run_duration_minutes is None:
+        run_duration_minutes = 60
+
     row = await db_create_device(
         user_id=user_id,
-        name=name.strip(),
-        type_=type_.strip(),
-        brand=body.get("brand"),
-        model=body.get("model"),
-        hourly_energy=body.get("hourlyEnergy"),
-        is_smart=bool(body.get("isSmart", False)),
-        run_duration_minutes=body.get("runDurationMinutes"),
+        name=name,
+        type_=type_,
+        brand=brand or None,
+        model=model or None,
+        hourly_energy=float(hourly_energy),
+        is_smart=bool(is_smart),
+        run_duration_minutes=int(run_duration_minutes),
     )
     if not row:
         raise HTTPException(status_code=500, detail="Failed to create device")
@@ -135,7 +223,7 @@ def _device_response(row: dict):
         "type": row["type"],
         "brand": row["brand"],
         "model": row["model"],
-        "hourlyEnergy": row["hourly_energy"],
+        "hourlyEnergy": row.get("hourly_energy"),
         "isSmart": row["is_smart"],
         "runDurationMinutes": row["run_duration_minutes"],
     }
@@ -147,23 +235,55 @@ async def update_device_endpoint(
     request: Request,
     userinfo: dict = Depends(_require_user),
 ):
-    """Update a device. Only allowed if the device belongs to the authenticated user."""
+    """Update a device. Body: name, brand, model (required). Gemini fills type, hourlyEnergy (in-use only), isSmart, runDurationMinutes if not provided."""
     body = await request.json()
     user_id = userinfo["sub"]
-    name = body.get("name") or ""
+    name = (body.get("name") or "").strip()
+    brand = (body.get("brand") or "").strip()
+    model = (body.get("model") or "").strip()
+    if not name or not brand or not model:
+        raise HTTPException(status_code=400, detail="name, brand, and model are required")
+
     type_ = body.get("type") or ""
-    if not name or not type_:
-        raise HTTPException(status_code=400, detail="name and type are required")
+    hourly_energy = body.get("hourlyEnergy")
+    is_smart = body.get("isSmart")
+    run_duration_minutes = body.get("runDurationMinutes")
+
+    if _gemini and (not type_ or hourly_energy is None or is_smart is None or run_duration_minutes is None):
+        try:
+            enriched = await asyncio.to_thread(
+                _gemini.enrich_device, name, brand or "", model or ""
+            )
+            type_ = type_ or enriched.get("type", "Other")
+            if hourly_energy is None:
+                hourly_energy = enriched.get("hourlyEnergy", 0.0)
+            if is_smart is None:
+                is_smart = enriched.get("isSmart", False)
+            if run_duration_minutes is None:
+                run_duration_minutes = enriched.get("runDurationMinutes", 60)
+        except Exception as e:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Failed to enrich device with Gemini: {getattr(e, 'message', str(e))}",
+            )
+    type_ = type_ or "Other"
+    if hourly_energy is None:
+        hourly_energy = 0.0
+    if is_smart is None:
+        is_smart = False
+    if run_duration_minutes is None:
+        run_duration_minutes = 60
+
     row = await db_update_device(
         device_id=device_id,
         user_id=user_id,
-        name=name.strip(),
-        type_=type_.strip(),
-        brand=body.get("brand"),
-        model=body.get("model"),
-        hourly_energy=body.get("hourlyEnergy"),
-        is_smart=bool(body.get("isSmart", False)),
-        run_duration_minutes=body.get("runDurationMinutes"),
+        name=name,
+        type_=type_,
+        brand=brand or None,
+        model=model or None,
+        hourly_energy=float(hourly_energy),
+        is_smart=bool(is_smart),
+        run_duration_minutes=int(run_duration_minutes),
     )
     if not row:
         raise HTTPException(status_code=404, detail="Device not found or access denied")

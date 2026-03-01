@@ -39,6 +39,8 @@ model Device {
   brand              String?
   model              String?
   hourlyEnergy       Float?  @map("hourly_energy")
+  standbyEnergy      Float?  @map("standby_energy")
+  activeEnergy       Float?  @map("active_energy")
   isSmart            Boolean @default(false) @map("is_smart")
   runDurationMinutes Int?    @map("run_duration_minutes")
   user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)

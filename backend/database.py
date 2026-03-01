@@ -4,6 +4,7 @@ from config import DATABASE_URL
 import os
 import logging
 import ssl
+import uuid
 
 _use_ssl = os.getenv("DATABASE_SSL", "true").lower() in ("1", "true", "yes")
 _verify_ssl = os.getenv("DATABASE_SSL_VERIFY", "false").lower() in ("1", "true", "yes")
@@ -86,18 +87,20 @@ async def create_device(
     run_duration_minutes: int | None = None,
 ) -> dict | None:
     """Create a device for the user. Returns the created row as dict or None on failure."""
+    device_id = str(uuid.uuid4())
     try:
         async with async_session() as session:
             result = await session.execute(
                 text("""
-                    INSERT INTO devices (user_id, name, type, brand, model,
+                    INSERT INTO devices (device_id, user_id, name, type, brand, model,
                                         hourly_energy, is_smart, run_duration_minutes)
-                    VALUES (:user_id, :name, :type, :brand, :model,
+                    VALUES (:device_id, :user_id, :name, :type, :brand, :model,
                             :hourly_energy, :is_smart, :run_duration_minutes)
                     RETURNING device_id, user_id, name, type, brand, model,
                               hourly_energy, is_smart, run_duration_minutes
                 """),
                 {
+                    "device_id": device_id,
                     "user_id": user_id,
                     "name": name,
                     "type": type_,
